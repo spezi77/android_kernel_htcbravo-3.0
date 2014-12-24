@@ -51,13 +51,8 @@
 #define REG_FINE_INT_TIME            0x3014
 #define REG_ROW_SPEED                0x3016
 #define MT9T013_REG_RESET_REGISTER   0x301A
-// PG-MIPI-00-{
-//#define MT9T013_RESET_REGISTER_PWON  0x10CC
-//#define MT9T013_RESET_REGISTER_PWOFF 0x1008 /* 0x10C8 stop streaming*/
-#define MT9T013_RESET_REGISTER_PWON             0x007C//0x007C
-#define MT9T013_RESET_REGISTER_PWOFF 0x0008
-// PG-MIPI-00-}
-
+#define MT9T013_RESET_REGISTER_PWON  0x10CC
+#define MT9T013_RESET_REGISTER_PWOFF 0x1008 /* 0x10C8 stop streaming*/
 #define MT9T013_RESET_FAST_TRANSITION 0x0002
 #define REG_READ_MODE                0x3040
 #define REG_GLOBAL_GAIN              0x305E
@@ -89,8 +84,6 @@ enum mt9t013_setting {
 	RES_CAPTURE
 };
 
-static int sensor_probe_node = 0;
-
 /* actuator's Slave Address */
 #define MT9T013_AF_I2C_ADDR   0x18
 
@@ -114,7 +107,6 @@ struct mt9t013_work {
 	struct work_struct work;
 };
 
-static bool CSI_CONFIG=false;
 static struct  mt9t013_work *mt9t013_sensorw;
 static struct  i2c_client *mt9t013_client;
 
@@ -162,7 +154,7 @@ static int mt9t013_i2c_rxdata(unsigned short saddr,
 	};
 
 	if (i2c_transfer(mt9t013_client->adapter, msgs, 2) < 0) {
-		pr_err("[CAM] mt9t013_i2c_rxdata failed!\n");
+		pr_err("mt9t013_i2c_rxdata failed!\n");
 		return -EIO;
 	}
 
@@ -190,7 +182,7 @@ static int32_t mt9t013_i2c_read_w(unsigned short saddr,
 	*rdata = buf[0] << 8 | buf[1];
 
 	if (rc < 0)
-		pr_err("[CAM] mt9t013_i2c_read failed!\n");
+		pr_err("mt9t013_i2c_read failed!\n");
 
 	return rc;
 }
@@ -208,7 +200,7 @@ static int32_t mt9t013_i2c_txdata(unsigned short saddr,
 	};
 
 	if (i2c_transfer(mt9t013_client->adapter, msg, 1) < 0) {
-		pr_err("[CAM] mt9t013_i2c_txdata failed\n");
+		pr_err("mt9t013_i2c_txdata failed\n");
 		return -EIO;
 	}
 
@@ -227,7 +219,7 @@ static int32_t mt9t013_i2c_write_b(unsigned short saddr,
 	rc = mt9t013_i2c_txdata(saddr, buf, 2);
 
 	if (rc < 0)
-		pr_err("[CAM] i2c_write failed, addr = 0x%x, val = 0x%x!\n",
+		pr_err("i2c_write failed, addr = 0x%x, val = 0x%x!\n",
 		waddr, wdata);
 
 	return rc;
@@ -248,7 +240,7 @@ static int32_t mt9t013_i2c_write_w(unsigned short saddr,
 	rc = mt9t013_i2c_txdata(saddr, buf, 4);
 
 	if (rc < 0)
-		pr_err("[CAM] i2c_write_w failed, addr = 0x%x, val = 0x%x!\n",
+		pr_err("i2c_write_w failed, addr = 0x%x, val = 0x%x!\n",
 		waddr, wdata);
 
 	return rc;
@@ -303,9 +295,7 @@ static int32_t mt9t013_test(enum mt9t013_test_mode mo)
 
 	return rc;
 }
-/* HTC_START */
-/* use chromatix's, not this */
-/*
+
 static int32_t mt9t013_set_lc(void)
 {
 	int32_t rc;
@@ -317,8 +307,6 @@ static int32_t mt9t013_set_lc(void)
 
 	return rc;
 }
-*/
-/* HTC_END */
 
 static int32_t mt9t013_set_default_focus(uint8_t af_step)
 {
@@ -426,7 +414,7 @@ static int32_t mt9t013_set_fps(struct fps_cfg *fps)
 	if (rc < 0)
 		return -EBUSY;
 
-	CDBG("[CAM] mt9t013_set_fps: fps_div is %d, f_mult is %d\n",
+	CDBG("mt9t013_set_fps: fps_div is %d, f_mult is %d\n",
 			fps->fps_div, fps->f_mult);
 
 	if (mt9t013_ctrl->sensormode == SENSOR_PREVIEW_MODE)
@@ -500,8 +488,7 @@ static int32_t mt9t013_set_pict_exp_gain(uint16_t gain, uint32_t line)
 
 	rc = mt9t013_i2c_write_w(mt9t013_client->addr,
 			MT9T013_REG_RESET_REGISTER,
-			//0x10CC | 0x0002); // PG-MIPI-00
-			MT9T013_RESET_REGISTER_PWON | 0x0002);
+			0x10CC | 0x0002);
 
 	mdelay(5);
 
@@ -512,24 +499,11 @@ static int32_t mt9t013_setting(enum mt9t013_reg_update rupdate,
 	enum mt9t013_setting rt)
 {
 	int32_t rc = 0;
-	struct msm_camera_csi_params mt9t013_csi_params;
-	
+
 	switch (rupdate) {
 	case UPDATE_PERIODIC: {
 
 	if (rt == RES_PREVIEW || rt == RES_CAPTURE) {
-		if (!CSI_CONFIG) {
-			msm_camio_vfe_clk_rate_set(266667000);
-			mt9t013_csi_params.data_format = CSI_10BIT;
-			mt9t013_csi_params.lane_cnt = 1;
-			mt9t013_csi_params.lane_assign = 0xe4;
-			mt9t013_csi_params.dpcm_scheme = 0;
-			mt9t013_csi_params.settle_cnt = 0x18;
-			mt9t013_csi_params.mipi_driving_strength = 3;
-			rc = msm_camio_csi_config(&mt9t013_csi_params);
-			msleep(10);
-			CSI_CONFIG = 1;
-		}
 #if 0
 		rc =
 			mt9t013_i2c_write_w(mt9t013_client->addr,
@@ -589,14 +563,14 @@ static int32_t mt9t013_setting(enum mt9t013_reg_update rupdate,
 				GROUPED_PARAMETER_HOLD);
 		if (rc < 0)
 			return rc;
-/*
+
 		rc =
 			mt9t013_i2c_write_w(mt9t013_client->addr,
 				REG_ROW_SPEED,
 				mt9t013_regs.reg_pat[rt].row_speed);
 		if (rc < 0)
 			return rc;
-*/
+
 		rc =
 			mt9t013_i2c_write_w(mt9t013_client->addr,
 				REG_X_ADDR_START,
@@ -784,37 +758,36 @@ static int32_t mt9t013_setting(enum mt9t013_reg_update rupdate,
 		/* additional power saving mode ok around 38.2MHz */
 		rc =
 			mt9t013_i2c_write_w(mt9t013_client->addr,
-				0x3084, 0x240C);
+				0x3084, 0x2409);
 		if (rc < 0)
 			return rc;
 
 		rc =
 			mt9t013_i2c_write_w(mt9t013_client->addr,
-				0x3092, 0x0A4C);
+				0x3092, 0x0A49);
 		if (rc < 0)
 			return rc;
 
 		rc =
 			mt9t013_i2c_write_w(mt9t013_client->addr,
-				0x3094, 0x4C4C);
+				0x3094, 0x4949);
 		if (rc < 0)
 			return rc;
 
 		rc =
 			mt9t013_i2c_write_w(mt9t013_client->addr,
-				0x3096, 0x4C54);
+				0x3096, 0x4949);
 		if (rc < 0)
 			return rc;
 
 		/* Set preview or snapshot mode */
-/*
 		rc =
 			mt9t013_i2c_write_w(mt9t013_client->addr,
 				REG_ROW_SPEED,
 				mt9t013_regs.reg_pat[rt].row_speed);
 		if (rc < 0)
 			return rc;
-*/
+
 		rc =
 			mt9t013_i2c_write_w(mt9t013_client->addr,
 				REG_X_ADDR_START,
@@ -924,11 +897,7 @@ static int32_t mt9t013_setting(enum mt9t013_reg_update rupdate,
 			return rc;
 
 		/* most likely needs to be written only once. */
-		/* HTC_START */
-		/* use chromatix's, not this */
-		/* rc = mt9t013_set_lc(); */
-		/* HTC_END */
-
+		rc = mt9t013_set_lc();
 		if (rc < 0)
 			return -EBUSY;
 
@@ -955,10 +924,8 @@ static int32_t mt9t013_setting(enum mt9t013_reg_update rupdate,
 
 		CDBG("!!! mt9t013 !!! PowerOn is done!\n");
 		mdelay(5);
-		CSI_CONFIG = 0;
 		return rc;
 		}
-		
 	} /* case CAMSENSOR_REG_INIT: */
 	break;
 
@@ -1121,86 +1088,6 @@ static int mt9t013_sensor_init_done(const struct msm_camera_sensor_info *data)
 	return 0;
 }
 
-// HTC_START
-#if 0// AWB/LSC calibration
-static int mt9t013_i2c_read_fuseid(struct sensor_cfg_data *cdata)
-{
-
-//Set REG= 0x301A[5], 0x01     // RESET_REGISTER
-//And read
-//REG= 0x31F4,         // FUSE_ID1
-//REG= 0x31F6,         // FUSE_ID2
-//REG= 0x31F8,         // FUSE_ID3
-//REG= 0x31FA,        // FUSE_ID4
-
-	int rc;
-	uint16_t regData;
-
-	printk(KERN_INFO "mt9t013_i2c_read_fuseid\n");
-
-	/* Read out reg and enable this bit ----------------------------------------------*/
-	rc = mt9t013_i2c_read_w(mt9t013_client->addr,
-		MT9T013_REG_RESET_REGISTER, &regData);
-
-	if (rc < 0)
-		goto fail;
-
-	rc = mt9t013_i2c_write_w(mt9t013_client->addr,
-			MT9T013_REG_RESET_REGISTER,
-			regData | 0x00020);
-
-	if (rc < 0)
-		goto fail;
-
-	rc = mt9t013_i2c_read_w(mt9t013_client->addr,
-		0x31F4, &regData);
-
-	if (rc < 0)
-		goto fail;
-
-	cdata->cfg.fuse.fuse_id_word1 = (uint32_t) regData;
-
-	rc = mt9t013_i2c_read_w(mt9t013_client->addr,
-		0x31F6, &regData);
-
-	if (rc < 0)
-		goto fail;
-
-	cdata->cfg.fuse.fuse_id_word2 = (uint32_t) regData;
-
-	rc = mt9t013_i2c_read_w(mt9t013_client->addr,
-		0x31F8, &regData);
-
-	if (rc < 0)
-		goto fail;
-
-	cdata->cfg.fuse.fuse_id_word3 = (uint32_t) regData;
-
-	rc = mt9t013_i2c_read_w(mt9t013_client->addr,
-		0x31FA, &regData);
-	
-	if (rc < 0)
-		goto fail;
-
-	cdata->cfg.fuse.fuse_id_word4 = (uint32_t) regData;
-
-#if 1
-
-	printk(KERN_INFO "cdata->cfg.fuse.fuse_id_word1 = %x \n", cdata->cfg.fuse.fuse_id_word1);
-	printk(KERN_INFO "cdata->cfg.fuse.fuse_id_word2 = %x \n", cdata->cfg.fuse.fuse_id_word2);
-	printk(KERN_INFO "cdata->cfg.fuse.fuse_id_word3 = %x \n", cdata->cfg.fuse.fuse_id_word3);
-	printk(KERN_INFO "cdata->cfg.fuse.fuse_id_word4 = %x \n", cdata->cfg.fuse.fuse_id_word4);
-#endif
-
-	return 0;
-
-fail:
-	return rc;
-}
-#endif
-// HTC_END
-
-
 static int mt9t013_probe_init_sensor(const struct msm_camera_sensor_info *data)
 {
 	int rc;
@@ -1216,7 +1103,7 @@ static int mt9t013_probe_init_sensor(const struct msm_camera_sensor_info *data)
 
 	/* RESET the sensor image part via I2C command */
 	rc = mt9t013_i2c_write_w(mt9t013_client->addr,
-		MT9T013_REG_RESET_REGISTER, 0x0018);
+		MT9T013_REG_RESET_REGISTER, 0x1009);
 	if (rc < 0)
 		goto init_probe_fail;
 
@@ -1229,12 +1116,10 @@ static int mt9t013_probe_init_sensor(const struct msm_camera_sensor_info *data)
 	if (rc < 0)
 		goto init_probe_fail;
 
-	pr_info("[CAM] mt9t013 model_id = 0x%x\n", chipid);
+	CDBG("mt9t013 model_id = 0x%x\n", chipid);
 
 	/* 4. Compare sensor ID to MT9T012VC ID: */
 	if (chipid != MT9T013_MODEL_ID) {
-	
-    	pr_info("[CAM] model_id != 0x%x\n", MT9T013_MODEL_ID);
 		rc = -ENODEV;
 		goto init_probe_fail;
 	}
@@ -1259,14 +1144,9 @@ static int mt9t013_probe_init_sensor(const struct msm_camera_sensor_info *data)
 #endif
 
 init_probe_fail:
-	pr_info("[CAM] mt9t013 sensor probe fail\n");
-
 	gpio_direction_output(data->sensor_reset, 0);
 	gpio_free(data->sensor_reset);
-	return rc;
 init_probe_done:
-	pr_info("[CAM] mt9t013 sensor probe done\n");
-
 	return rc;
 }
 
@@ -1283,7 +1163,7 @@ static int32_t mt9t013_poweron_af(void)
 		mdelay(20);
 		rc = mt9t013_set_default_focus(0);
 	} else
-		pr_err("[CAM] %s, gpio_request failed (%d)!\n", __func__, rc);
+		pr_err("%s, gpio_request failed (%d)!\n", __func__, rc);
 	return rc;
 }
 
@@ -1293,34 +1173,13 @@ static void mt9t013_poweroff_af(void)
 	gpio_free(mt9t013_ctrl->sensordata->vcm_pwd);
 }
 
-// PG-POWER_SEQ-00-{
-static void set_reset_pin(const struct msm_camera_sensor_info *data, int value)
-{
-	int rc;
-	
-	rc = gpio_request(data->sensor_reset, "mt9t013");
-	if (!rc)
-	{
-		gpio_direction_output(data->sensor_reset, value);
-        gpio_free(data->sensor_reset);
-	}
-	else
-	{
-		pr_err("[CAM] mt9t013_init.set_reset_pin failed!\n");
-	}	
-}
-
-// PG-POWER_SEQ-00-}
-
-
 int mt9t013_sensor_open_init(const struct msm_camera_sensor_info *data)
 {
 	int32_t  rc;
-    pr_info("[CAM] mt9t013_sensor_open_init !\n");
 
 	mt9t013_ctrl = kzalloc(sizeof(struct mt9t013_ctrl), GFP_KERNEL);
 	if (!mt9t013_ctrl) {
-		pr_err("[CAM] mt9t013_init failed!\n");
+		pr_err("mt9t013_init failed!\n");
 		rc = -ENOMEM;
 		goto init_done;
 	}
@@ -1333,31 +1192,13 @@ int mt9t013_sensor_open_init(const struct msm_camera_sensor_info *data)
 
 	if (data)
 		mt9t013_ctrl->sensordata = data;
-	// HTC_START 
-	// klocwork: NPD.CHECK.MUST
-    else
-    {
-        pr_err("[CAM] data is NULL\n");
-        rc = -ENODEV;
-        goto init_fail;
-    }
-    // HTC_END
 
 	/* enable mclk first */
 	msm_camio_clk_rate_set(MT9T013_DEFAULT_CLOCK_RATE);
-	/* HTC_START Harvey 20110804 */
-	/* Change delay API for power up sequence */
-	hr_msleep(5);
-	/* HTC_END */
+	mdelay(20);
 
-	//msm_camio_camif_pad_reg_reset();
-	//mdelay(20);
-	
-    // PG-POWER_SEQ-00-{
-    set_reset_pin (data,0);
-	hr_msleep(5);
-    // PG-POWER_SEQ-00-}
-	
+	msm_camio_camif_pad_reg_reset();
+	mdelay(20);
 
 	rc = mt9t013_probe_init_sensor(data);
 	if (rc < 0)
@@ -1424,33 +1265,6 @@ static int32_t mt9t013_set_sensor_mode(int mode, int res)
 				GROUPED_PARAMETER_UPDATE);
 	return rc;
 }
-
-// HTC_START
-// not ready for use
-#if 0
-struct camera_size_type {
-  int width;
-  int height;
-};
-
-static const struct camera_size_type* mt9t013_sensor_get_snapshot_sizes(int *len)
-{
-    static const struct camera_size_type picture_sizes[] = {
-	    { 2048, 1360 }, 
-	    { 1280, 848}, 
-	    { 640, 416 }, 
-        
-	    { 2048, 1536 },
-	    { 1280, 960},
-	    { 640, 480}
-	 
-    };
-
-    *len = sizeof(picture_sizes)/sizeof(picture_sizes[0]);
-    return picture_sizes;
-}
-#endif
-// HTC_END
 
 int mt9t013_sensor_config(void __user *argp)
 {
@@ -1549,16 +1363,6 @@ int mt9t013_sensor_config(void __user *argp)
 	case CFG_SET_DEFAULT_FOCUS:
 		rc = mt9t013_set_default_focus(cdata.cfg.focus.steps);
 		break;
-// HTC_START
-#if 0
-// AWB/LSC cal.
-	case CFG_GET_OTP:
-		rc = mt9t013_i2c_read_fuseid(&cdata);
-		if (copy_to_user(argp, &cdata, sizeof(struct sensor_cfg_data)))
-			rc = -EFAULT;
-#endif
-// HTC_END		
-		break;
 
 	case CFG_GET_AF_MAX_STEPS:
 		cdata.max_steps = MT9T013_TOTAL_STEPS_NEAR_TO_FAR;
@@ -1592,11 +1396,6 @@ int mt9t013_sensor_release(void)
 			0);
 	gpio_free(mt9t013_ctrl->sensordata->sensor_reset);
 
-	/* HTC_START Harvey 20110804 */
-	/* For camera power off sequence delay */
-	hr_msleep(1);
-	/* HTC_END */
-
 	kfree(mt9t013_ctrl);
 
 	up(&mt9t013_sem);
@@ -1627,13 +1426,13 @@ static int mt9t013_i2c_probe(struct i2c_client *client,
 	mt9t013_client->addr = mt9t013_client->addr >> 1;
 	mdelay(50);
 
-	pr_info("[CAM] i2c probe ok\n");
+	CDBG("i2c probe ok\n");
 	return 0;
 
 probe_failure:
 	kfree(mt9t013_sensorw);
 	mt9t013_sensorw = NULL;
-	pr_err("[CAM] i2c probe failure %d\n", rc);
+	pr_err("i2c probe failure %d\n", rc);
 	return rc;
 }
 
@@ -1651,66 +1450,6 @@ static struct i2c_driver mt9t013_i2c_driver = {
 	},
 };
 
-static const char *MT9T013Vendor = "Micron";
-static const char *MT9T013NAME = "mt9t013";
-static const char *MT9T013Size = "3M";
-
-static ssize_t sensor_vendor_show( struct device *dev,
-  struct device_attribute *attr, char *buf)
-{
-  ssize_t ret = 0;
-
-  sprintf(buf, "%s %s %s\n", MT9T013Vendor, MT9T013NAME, MT9T013Size);
-  ret = strlen(buf) + 1;
-
-  return ret;
-}
-
-static ssize_t sensor_read_node( struct device *dev,
-  struct device_attribute *attr, char *buf)
-{
-  ssize_t length;
-  length = sprintf(buf, "%d\n", sensor_probe_node);
-  return length;
-}
-
-static DEVICE_ATTR(sensor, 0444, sensor_vendor_show, NULL);
-static DEVICE_ATTR(node, 0444, sensor_read_node, NULL);
-
-static struct kobject *android_mt9t013 = NULL;
-
-static int mt9t013_sysfs_init(void)
-{
-  int ret = 0;
-  pr_info("[CAM] mt9t013:kobject creat and add\n");
-  android_mt9t013 = kobject_create_and_add("android_camera", NULL);
-  if (android_mt9t013 == NULL) {
-    pr_info("[CAM] mt9t013_sysfs_init: subsystem_register failed\n");
-    ret = -ENOMEM;
-    return ret ;
-  }
-  pr_info("[CAM] mt9t013:sysfs_create_file\n");
-  ret = sysfs_create_file(android_mt9t013, &dev_attr_sensor.attr);
-  if (ret) {
-    pr_info("[CAM] mt9t013_sysfs_init: sysfs_create_file failed\n");
-    ret = -EFAULT;
-    goto error;
-  }
-
-  ret = sysfs_create_file(android_mt9t013, &dev_attr_node.attr);
-  if (ret) {
-    pr_info("[CAM] mt9t013_sysfs_init: dev_attr_node failed\n");
-    ret = -EFAULT;
-    goto error;
-  }
-
-  return ret;
-
-error:
-  kobject_del(android_mt9t013);
-  return ret;
-}
-
 static int mt9t013_sensor_probe(
 		const struct msm_camera_sensor_info *info,
 		struct msm_sensor_ctrl *s)
@@ -1725,22 +1464,8 @@ static int mt9t013_sensor_probe(
 
 	/* enable mclk first */
 	msm_camio_clk_rate_set(MT9T013_DEFAULT_CLOCK_RATE);
+	mdelay(20);
 
-	/* HTC_START Harvey 20110804 */
-	/* Change delay API for power up sequence */
-	hr_msleep(5);
-	/* HTC_END */
-
-	
-
-    // PG-POWER_SEQ-00-{
-    set_reset_pin (info,0);
-	hr_msleep(5);
-    // PG-POWER_SEQ-00-}
-
-	//pr_info("[CAM] mt9t013_sensor_probe s->node 0x%x\n", s->node);
-	//sensor_probe_node = s->node;
-	
 	rc = mt9t013_probe_init_sensor(info);
 	if (rc < 0) {
 		i2c_del_driver(&mt9t013_i2c_driver);
@@ -1750,10 +1475,9 @@ static int mt9t013_sensor_probe(
 	s->s_init = mt9t013_sensor_open_init;
 	s->s_release = mt9t013_sensor_release;
 	s->s_config  = mt9t013_sensor_config;
-	s->s_camera_type = BACK_CAMERA_2D;
 	s->s_mount_angle = 0;
 	mt9t013_sensor_init_done(info);
-	mt9t013_sysfs_init();
+
 probe_done:
 	return rc;
 }
