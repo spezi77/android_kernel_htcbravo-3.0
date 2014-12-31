@@ -25,7 +25,6 @@ void __init msm9615_device_init(void);
 void __init msm9615_map_io(void);
 void __init msm_map_msm9615_io(void);
 void __init msm9615_init_irq(void);
-int panel_init_spi_hack(void);
 
 extern struct platform_device asoc_msm_pcm;
 extern struct platform_device asoc_msm_dai0;
@@ -144,7 +143,6 @@ extern struct platform_device msm_device_ssbi_pmic2;
 extern struct platform_device msm_device_ssbi1;
 extern struct platform_device msm_device_ssbi2;
 extern struct platform_device msm_device_ssbi3;
-extern struct platform_device msm_device_ssbi6;
 extern struct platform_device msm_device_ssbi7;
 
 #ifdef CONFIG_MSM_SSBI
@@ -203,6 +201,7 @@ void __init msm_fb_register_device(char *name, void *data);
 void __init msm_camera_register_device(void *, uint32_t, void *);
 struct platform_device *msm_add_gsbi9_uart(void);
 extern struct platform_device msm_device_touchscreen;
+extern struct platform_device qsd_device_spi;
 extern unsigned engineer_id;
 extern int ps_type;
 
