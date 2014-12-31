@@ -131,12 +131,7 @@ else # Else CONFIG_ARCH_MSM7X27A
 obj-$(CONFIG_MSM_SMD) += smd.o smd_debug.o
 endif # End CONFIG_ARCH_MSM7X27A
 obj-$(CONFIG_MSM_SMD_TTY) += smd_tty.o
-ifdef CONFIG_MACH_HTCLEO
-obj-$(CONFIG_MSM_SMD) +=  smd_qmi_wince.o
-obj-y += amss_para.o
-else
 obj-$(CONFIG_MSM_SMD_QMI) += smd_qmi.o
-endif
 obj-$(CONFIG_MSM_SMD_PKT) += smd_pkt.o
 obj-$(CONFIG_MSM_SMD_NMEA) += smd_nmea.o
 obj-$(CONFIG_MSM_ONCRPCROUTER) += smd_rpcrouter.o
@@ -175,12 +170,7 @@ obj-$(CONFIG_MSM7KV2_1X_AUDIO) += qdsp5v2_1x/
 obj-$(CONFIG_MSM7KV2_AUDIO) += htc_acoustic_7x30.o htc_acdb_7x30.o
 obj-$(CONFIG_MSM7KV2_1X_AUDIO) += htc_acoustic_7x30.o htc_acdb_7x30.o
 
-ifndef CONFIG_MACH_HTCLEO
 obj-$(CONFIG_MSM_QDSP6) += qdsp6/
-else
-obj-y += dex_comm.o
-obj-$(CONFIG_MSM_QDSP6) += qdsp6_1550/
-endif
 obj-$(CONFIG_MSM8X60_AUDIO) += qdsp6v2_1x/
 obj-$(CONFIG_MSM_AUDIO_QDSP6) += qdsp6v2/
 obj-$(CONFIG_MSM_HW3D) += hw3d.o
