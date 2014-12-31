@@ -23,8 +23,6 @@
 #include <linux/sched.h>
 #include <linux/dma-mapping.h>
 #include <linux/io.h>
-#include <linux/moduleparam.h>
-#include <linux/stat.h>
 #include <linux/crc16.h>
 #include <linux/bitrev.h>
 
@@ -32,9 +30,8 @@
 #include <asm/mach/flash.h>
 
 #include <mach/dma.h>
-#include <mach/board-htcleo-mac.h>
+
 #include "msm_nand.h"
-#include "../mtdcore.h"
 
 unsigned long msm_nand_phys;
 unsigned long msm_nandc01_phys;
@@ -101,16 +98,105 @@ static struct nand_ecclayout msm_nand_oob_64 = {
 	.eccbytes	= 40,
 	.eccpos		= {
 		0,  1,  2,  3,  4,  5,  6,  7,  8,  9,
-		16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
-		32, 33, 34, 35, 36, 37, 38, 39, 40, 41,
-		48, 49, 50, 51, 52, 53, 54, 55, 56, 57,
+		10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+		20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+		46, 47, 48, 49, 50, 51, 52, 53, 54, 55,
 		},
 	.oobavail	= 16,
 	.oobfree	= {
-		{10, 4},
-		{26, 4},
-		{42, 4},
-		{58, 4},
+		{30, 16},
+	}
+};
+
+/**
+ * msm_nand_oob_128 - oob info for 4KB page
+ */
+static struct nand_ecclayout msm_nand_oob_128 = {
+	.eccbytes	= 80,
+	.eccpos		= {
+		  0,   1,   2,   3,   4,   5,   6,   7,   8,   9,
+		 10,  11,  12,  13,  14,  15,  16,  17,  18,  19,
+		 20,  21,  22,  23,  24,  25,  26,  27,  28,  29,
+		 30,  31,  32,  33,  34,  35,  36,  37,  38,  39,
+		 40,  41,  42,  43,  44,  45,  46,  47,  48,  49,
+		 50,  51,  52,  53,  54,  55,  56,  57,  58,  59,
+		 60,  61,  62,  63,  64,  65,  66,  67,  68,  69,
+		102, 103, 104, 105, 106, 107, 108, 109, 110, 111,
+		},
+	.oobavail	= 32,
+	.oobfree	= {
+		{70, 32},
+	}
+};
+
+/**
+ * msm_nand_oob_224 - oob info for 4KB page 8Bit interface
+ */
+static struct nand_ecclayout msm_nand_oob_224_x8 = {
+	.eccbytes	= 104,
+	.eccpos		= {
+		  0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,  12,
+		 13,  14,  15,  16,  17,  18,  19,  20,  21,  22,  23,  24,  25,
+		 26,  27,  28,  29,  30,  31,  32,  33,  34,  35,  36,  37,  38,
+		 39,  40,  41,  42,  43,  44,  45,  46,  47,  48,  49,  50,  51,
+		 52,  53,  54,  55,  56,  57,  58,  59,	 60,  61,  62,  63,  64,
+		 65,  66,  67,  68,  69,  70,  71,  72,  73,  74,  75,  76,  77,
+		 78,  79,  80,  81,  82,  83,  84,  85,  86,  87,  88,  89,  90,
+		123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135,
+		},
+	.oobavail	= 32,
+	.oobfree	= {
+		{91, 32},
+	}
+};
+
+/**
+ * msm_nand_oob_224 - oob info for 4KB page 16Bit interface
+ */
+static struct nand_ecclayout msm_nand_oob_224_x16 = {
+	.eccbytes	= 112,
+	.eccpos		= {
+	  0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,  12,  13,
+	 14,  15,  16,  17,  18,  19,  20,  21,  22,  23,  24,  25,  26,  27,
+	 28,  29,  30,  31,  32,  33,  34,  35,  36,  37,  38,  39,  40,  41,
+	 42,  43,  44,  45,  46,  47,  48,  49,  50,  51,  52,  53,  54,  55,
+	 56,  57,  58,  59,  60,  61,  62,  63,  64,  65,  66,  67,  68,  69,
+	 70,  71,  72,  73,  74,  75,  76,  77,  78,  79,  80,  81,  82,  83,
+	 84,  85,  86,  87,  88,  89,  90,  91,  92,  93,  94,  95,  96,  97,
+	130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143,
+	},
+	.oobavail	= 32,
+	.oobfree	= {
+		{98, 32},
+	}
+};
+
+/**
+ * msm_nand_oob_256 - oob info for 8KB page
+ */
+static struct nand_ecclayout msm_nand_oob_256 = {
+	.eccbytes 	= 160,
+	.eccpos 	= {
+		  0,   1,   2,   3,   4,   5,   6,   7,   8,   9,
+		 10,  11,  12,  13,  14,  15,  16,  17,  18,  19,
+		 20,  21,  22,  23,  24,  25,  26,  27,  28,  29,
+		 30,  31,  32,  33,  34,  35,  36,  37,  38,  39,
+		 40,  41,  42,  43,  44,  45,  46,  47,  48,  49,
+		 50,  51,  52,  53,  54,  55,  56,  57,  58,  59,
+		 60,  61,  62,  63,  64,  65,  66,  67,  68,  69,
+		 70,  71,  72,  73,  74,  75,  76,  77,  78,  79,
+		 80,  81,  82,  83,  84,  85,  86,  87,  88,  89,
+		 90,  91,  92,  93,  94,  96,  97,  98 , 99, 100,
+		101, 102, 103, 104, 105, 106, 107, 108, 109, 110,
+		111, 112, 113, 114, 115, 116, 117, 118, 119, 120,
+		121, 122, 123, 124, 125, 126, 127, 128, 129, 130,
+		131, 132, 133, 134, 135, 136, 137, 138, 139, 140,
+		141, 142, 143, 144, 145, 146, 147, 148, 149, 150,
+		215, 216, 217, 218, 219, 220, 221, 222, 223, 224,
+		},
+	.oobavail	= 64,
+	.oobfree	= {
+		{151, 64},
 	}
 };
 
@@ -191,7 +277,7 @@ unsigned flash_rd_reg(struct msm_nand_chip *chip, unsigned addr)
 		unsigned data;
 	} *dma_buffer;
 	unsigned rv;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx001xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 	wait_event(chip->wait_queue,
 		   (dma_buffer = msm_nand_get_dma_buffer(
 			    chip, sizeof(*dma_buffer))));
@@ -225,7 +311,7 @@ void flash_wr_reg(struct msm_nand_chip *chip, unsigned addr, unsigned val)
 		unsigned cmdptr;
 		unsigned data;
 	} *dma_buffer;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx002xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 	wait_event(chip->wait_queue,
 		   (dma_buffer = msm_nand_get_dma_buffer(
 			    chip, sizeof(*dma_buffer))));
@@ -254,7 +340,6 @@ msm_nand_dma_map(struct device *dev, void *addr, size_t size,
 {
 	struct page *page;
 	unsigned long offset = (unsigned long)addr & ~PAGE_MASK;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx003xxxxxxxxxxxxxxxxxxxxxxxxx");
 	if (virt_addr_valid(addr))
 		page = virt_to_page(addr);
 	else {
@@ -273,7 +358,7 @@ uint32_t flash_read_id(struct msm_nand_chip *chip)
 		unsigned data[7];
 	} *dma_buffer;
 	uint32_t rv;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx004xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 	wait_event(chip->wait_queue, (dma_buffer = msm_nand_get_dma_buffer
 				(chip, sizeof(*dma_buffer))));
 
@@ -354,7 +439,7 @@ uint16_t flash_onfi_crc_check(uint8_t *buffer, uint16_t count)
 {
 	int i;
 	uint16_t result;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx005xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 	for (i = 0; i < count; i++)
 		buffer[i] = bitrev8(buffer[i]);
 
@@ -444,7 +529,7 @@ uint32_t flash_onfi_probe(struct msm_nand_chip *chip)
 	dma_addr_t dma_addr_identifier = 0;
 	unsigned cmd_set_count = 2;
 	unsigned crc_chk_count = 0;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx006xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 	if (msm_nand_data.nr_parts) {
 		page_address = ((msm_nand_data.parts[0]).offset << 6);
 	} else {
@@ -731,7 +816,6 @@ static int msm_nand_read_oob(struct mtd_info *mtd, loff_t from,
 	uint32_t ecc_errors;
 	uint32_t total_ecc_errors = 0;
 	unsigned cwperpage;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx007xxxxxxxxxxxxxxxxxxxxxxxxx");
 #if VERBOSE
 	pr_info("================================================="
 			"================\n");
@@ -1160,7 +1244,6 @@ static int msm_nand_read_oob_dualnandc(struct mtd_info *mtd, loff_t from,
 	uint32_t total_ecc_errors = 0;
 	unsigned cwperpage;
 	unsigned cw_offset = chip->cw_size;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx008xxxxxxxxxxxxxxxxxxxxxxxxx");
 #if VERBOSE
 		pr_info("================================================="
 				"============\n");
@@ -1325,7 +1408,7 @@ static int msm_nand_read_oob_dualnandc(struct mtd_info *mtd, loff_t from,
 		dma_buffer->data.exec = 1;
 
 		BUILD_BUG_ON(16 != ARRAY_SIZE(dma_buffer->data.result));
-	pr_info("xxxxxxxxxxxxxxxxxxxxx009xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 		for (n = start_sector; n < cwperpage; n++) {
 			/* flash + buffer status return words */
 			dma_buffer->data.result[n].flash_status = 0xeeeeeeee;
@@ -1746,13 +1829,13 @@ static int msm_nand_read_oob_dualnandc(struct mtd_info *mtd, loff_t from,
 		dma_buffer->cmdptr =
 			(msm_virt_to_dma(chip, dma_buffer->cmd) >> 3)
 			| CMD_PTR_LP;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx010xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 		mb();
 		msm_dmov_exec_cmd(chip->dma_channel,
 			DMOV_CMD_PTR_LIST | DMOV_CMD_ADDR(msm_virt_to_dma(chip,
 			&dma_buffer->cmdptr)));
 		mb();
-	pr_info("xxxxxxxxxxxxxxxxxxxxx011xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 		/* if any of the writes failed (0x10), or there
 		 * was a protection violation (0x100), we lose
 		 */
@@ -1907,7 +1990,7 @@ msm_nand_read(struct mtd_info *mtd, loff_t from, size_t len,
 	int ret;
 	struct mtd_oob_ops ops;
 
-	printk("msm_nand_read %llx %x\n", from, len);
+	/* printk("msm_nand_read %llx %x\n", from, len); */
 
 	ops.mode = MTD_OOB_PLACE;
 	ops.len = len;
@@ -1915,7 +1998,6 @@ msm_nand_read(struct mtd_info *mtd, loff_t from, size_t len,
 	ops.ooblen = 0;
 	ops.datbuf = buf;
 	ops.oobbuf = NULL;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx012xxxxxxxxxxxxxxxxxxxxxxxxx");
 	if (!dual_nand_ctlr_present)
 		ret =  msm_nand_read_oob(mtd, from, &ops);
 	else
@@ -1967,7 +2049,7 @@ msm_nand_write_oob(struct mtd_info *mtd, loff_t to, struct mtd_oob_ops *ops)
 			__func__, to, ops->mode, ops->datbuf, ops->len,
 			ops->oobbuf, ops->ooblen);
 #endif
-	pr_info("xxxxxxxxxxxxxxxxxxxxx013xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 	if (mtd->writesize == 2048)
 		page = to >> 11;
 
@@ -2314,7 +2396,6 @@ msm_nand_write_oob_dualnandc(struct mtd_info *mtd, loff_t to,
 				__func__, to, ops->mode, ops->datbuf, ops->len,
 				ops->oobbuf, ops->ooblen);
 #endif
-	pr_info("xxxxxxxxxxxxxxxxxxxxx014xxxxxxxxxxxxxxxxxxxxxxxxx");
 
 	if (mtd->writesize == 2048)
 		page = to >> 11;
@@ -2888,7 +2969,6 @@ static int msm_nand_write(struct mtd_info *mtd, loff_t to, size_t len,
 	ops.ooblen = 0;
 	ops.datbuf = (uint8_t *)buf;
 	ops.oobbuf = NULL;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx015xxxxxxxxxxxxxxxxxxxxxxxxx");
 	if (!dual_nand_ctlr_present)
 		ret =  msm_nand_write_oob(mtd, to, &ops);
 	else
@@ -2920,7 +3000,7 @@ msm_nand_erase(struct mtd_info *mtd, struct erase_info *instr)
 	} *dma_buffer;
 	dmov_s *cmd;
 	unsigned page = 0;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx016xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 	if (mtd->writesize == 2048)
 		page = instr->addr >> 11;
 
@@ -3013,7 +3093,6 @@ msm_nand_erase(struct mtd_info *mtd, struct erase_info *instr)
 		err = 0;
 
 	msm_nand_release_dma_buffer(chip, dma_buffer, sizeof(*dma_buffer));
-	pr_info("xxxxxxxxxxxxxxxxxxxxx017xxxxxxxxxxxxxxxxxxxxxxxxx");
 	if (err) {
 		pr_err("%s: erase failed, 0x%llx\n", __func__, instr->addr);
 		instr->fail_addr = instr->addr;
@@ -3060,7 +3139,7 @@ msm_nand_erase_dualnandc(struct mtd_info *mtd, struct erase_info *instr)
 	} *dma_buffer;
 	dmov_s *cmd;
 	unsigned page = 0;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx018xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 	if (mtd->writesize == 2048)
 		page = instr->addr >> 11;
 
@@ -3295,7 +3374,7 @@ msm_nand_block_isbad(struct mtd_info *mtd, loff_t ofs)
 	uint8_t *buf;
 	unsigned page = 0;
 	unsigned cwperpage;
-//	pr_info("xxxxxxxxxxxxxxxxxxxxx019xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 	if (mtd->writesize == 2048)
 		page = ofs >> 11;
 
@@ -3448,7 +3527,7 @@ msm_nand_block_isbad_dualnandc(struct mtd_info *mtd, loff_t ofs)
 	uint8_t *buf10;
 	unsigned page = 0;
 	unsigned cwperpage;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx020xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 	if (mtd->writesize == 2048)
 		page = ofs >> 11;
 
@@ -3677,7 +3756,7 @@ msm_nand_block_markbad(struct mtd_info *mtd, loff_t ofs)
 	struct mtd_oob_ops ops;
 	int ret;
 	uint8_t *buf;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx021xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 	/* Check for invalid offset */
 	if (ofs > mtd->size)
 		return -EINVAL;
@@ -3713,7 +3792,6 @@ msm_nand_block_markbad(struct mtd_info *mtd, loff_t ofs)
  */
 static int msm_nand_suspend(struct mtd_info *mtd)
 {
-	pr_info("xxxxxxxxxxxxxxxxxxxxx021xxxxxxxxxxxxxxxxxxxxxxxxx");
 	return 0;
 }
 
@@ -3768,7 +3846,7 @@ uint32_t flash_onenand_probe(struct msm_nand_chip *chip)
 
 	int err = 0;
 	uint32_t initialsflashcmd = 0;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx022xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 	initialsflashcmd = flash_rd_reg(chip, MSM_NAND_SFLASHC_CMD);
 
 	if ((initialsflashcmd & 0x10) == 0x10)
@@ -3989,7 +4067,6 @@ int msm_onenand_read_oob(struct mtd_info *mtd,
 			__func__, from, ops->mode, ops->datbuf, ops->len,
 			ops->oobbuf, ops->ooblen);
 #endif
-	pr_info("xxxxxxxxxxxxxxxxxxxxx024xxxxxxxxxxxxxxxxxxxxxxxxx");
 	if (!mtd) {
 		pr_err("%s: invalid mtd pointer, 0x%x\n", __func__,
 				(uint32_t)mtd);
@@ -4608,7 +4685,7 @@ int msm_onenand_read(struct mtd_info *mtd, loff_t from, size_t len,
 	ops.oobretlen = 0;
 	ret =  msm_onenand_read_oob(mtd, from, &ops);
 	*retlen = ops.retlen;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx025xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 	return ret;
 }
 
@@ -4666,7 +4743,7 @@ static int msm_onenand_write_oob(struct mtd_info *mtd, loff_t to,
 	uint16_t controller_status;
 	uint16_t interrupt_status;
 	uint16_t ecc_status;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx026xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 #if VERBOSE
 	pr_info("================================================="
 			"================\n");
@@ -5268,7 +5345,6 @@ static int msm_onenand_write_oob(struct mtd_info *mtd, loff_t to,
 		pr_info("%s: ecc_status = %x\n", __func__,
 					ecc_status);
 #endif
-	pr_info("xxxxxxxxxxxxxxxxxxxxx027xxxxxxxxxxxxxxxxxxxxxxxxx");
 		/* Check for errors, protection violations etc */
 		if ((controller_status != 0)
 				|| (dma_buffer->data.sfstat[0] & 0x110)
@@ -5339,7 +5415,6 @@ err_dma_map_oobbuf_failed:
 	pr_info("================================================="
 			"================\n");
 #endif
-	pr_info("xxxxxxxxxxxxxxxxxxxxx028xxxxxxxxxxxxxxxxxxxxxxxxx");
 	kfree(init_spare_bytes);
 	return err;
 }
@@ -5359,7 +5434,7 @@ static int msm_onenand_write(struct mtd_info *mtd, loff_t to, size_t len,
 	ops.oobretlen = 0;
 	ret =  msm_onenand_write_oob(mtd, to, &ops);
 	*retlen = ops.retlen;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx029xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 	return ret;
 }
 
@@ -5412,7 +5487,6 @@ static int msm_onenand_erase(struct mtd_info *mtd, struct erase_info *instr)
 	pr_info("%s: addr 0x%llx len 0x%llx\n",
 			__func__, instr->addr, instr->len);
 #endif
-	pr_info("xxxxxxxxxxxxxxxxxxxxx030xxxxxxxxxxxxxxxxxxxxxxxxx");
 	if (instr->addr & (mtd->erasesize - 1)) {
 		pr_err("%s: Unsupported erase address, 0x%llx\n",
 				__func__, instr->addr);
@@ -5687,7 +5761,6 @@ static int msm_onenand_erase(struct mtd_info *mtd, struct erase_info *instr)
 	pr_info("%s: ecc_status = %x\n", __func__,
 				ecc_status);
 #endif
-	pr_info("xxxxxxxxxxxxxxxxxxxxx032xxxxxxxxxxxxxxxxxxxxxxxxx");
 	/* Check for errors, protection violations etc */
 	if ((controller_status != 0)
 			|| (dma_buffer->data.sfstat[0] & 0x110)
@@ -5804,7 +5877,7 @@ static int msm_onenand_block_markbad(struct mtd_info *mtd, loff_t ofs)
 	ops.ooboffs = 0;
 	ops.datbuf = buffer;
 	ops.oobbuf = NULL;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx033xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 	for (i = 0; i < 2; i++) {
 		ofs = ofs + i*mtd->writesize;
 		rval = msm_onenand_write_oob(mtd, ofs, &ops);
@@ -5861,7 +5934,7 @@ static int msm_onenand_unlock(struct mtd_info *mtd, loff_t ofs, uint64_t len)
 	uint16_t write_prot_status;
 
 	uint64_t start_ofs;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx034xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 #if VERBOSE
 	pr_info("===================================================="
 			"=============\n");
@@ -6174,7 +6247,7 @@ static int msm_onenand_unlock(struct mtd_info *mtd, loff_t ofs, uint64_t len)
 	}
 
 	msm_nand_release_dma_buffer(chip, dma_buffer, sizeof(*dma_buffer));
-	pr_info("xxxxxxxxxxxxxxxxxxxxx035xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 #if VERBOSE
 	pr_info("\n%s: ret %d\n", __func__, err);
 	pr_info("===================================================="
@@ -6549,19 +6622,17 @@ static int msm_onenand_lock(struct mtd_info *mtd, loff_t ofs, uint64_t len)
 
 static int msm_onenand_suspend(struct mtd_info *mtd)
 {
-	pr_info("xxxxxxxxxxxxxxxxxxxxx036xxxxxxxxxxxxxxxxxxxxxxxxx");
 	return 0;
 }
 
 static void msm_onenand_resume(struct mtd_info *mtd)
 {
-	pr_info("xxxxxxxxxxxxxxxxxxxxx037xxxxxxxxxxxxxxxxxxxxxxxxx");
 }
 
 int msm_onenand_scan(struct mtd_info *mtd, int maxchips)
 {
 	struct msm_nand_chip *chip = mtd->priv;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx038xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 	/* Probe and check whether onenand device is present */
 	if (flash_onenand_probe(chip))
 		return -ENODEV;
@@ -6596,63 +6667,6 @@ int msm_onenand_scan(struct mtd_info *mtd, int maxchips)
 }
 
 /**
- * scanmac - Scan for HTC Leo mac addresses
- * 
- * @author: Franck78, Rick_1995, marc1706
- */
-void scanmac(struct mtd_info *mtd)
-{
-	unsigned char *iobuf;
-	int ret;
-	loff_t addr;
-	struct mtd_oob_ops ops;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx601xxxxxxxxxxxxxxxxxxxxxxxxx");
-	iobuf = kmalloc(2048/*mtd->erasesize*/, GFP_KERNEL);
-	if (!iobuf) {
-		printk("%s: error: cannot allocate memory\n",__func__);
-		return;
-	}
-
-	ops.mode = MTD_OOB_PLACE;
-	ops.len = 2048;
-	ops.datbuf = iobuf;
-	ops.ooblen = 0;
-	ops.oobbuf = NULL;
-	ops.retlen = 0;
-
-	addr = ((loff_t) 505*0x20000);
-	ret = msm_nand_read_oob(mtd, addr, &ops);
-	if (ret == -EUCLEAN)
-		ret = 0;
-	if (ret || ops.retlen != 2048 ) {
-		printk("%s: error: read(%d) failed at %#llx\n",__func__,
-		       ops.retlen, addr);
-		goto out;
-	}
-	sprintf(nvs_mac_addr, "macaddr=%02x:%02x:%02x:%02x:%02x:%02x",
-		iobuf[40],iobuf[41],iobuf[42],iobuf[43],iobuf[44],iobuf[45]);
-	pr_info("Device WiFi MAC Address: %s\n", nvs_mac_addr);
-
-	addr = ((loff_t) 505*0x20000 + 6*0x800);
-	ret = msm_nand_read_oob(mtd, addr, &ops);
-	if (ret == -EUCLEAN)
-		ret = 0;
-	if (ret || ops.retlen != 2048 ) {
-		printk("%s: error: read(%d) failed at %#llx\n",__func__,
-		       ops.retlen, addr);
-		goto out;
-	}
-	sprintf(bdaddr, "%02x:%02x:%02x:%02x:%02x:%02x",iobuf[5],iobuf[4],
-		iobuf[3],iobuf[2],iobuf[1],iobuf[0]);
-	pr_info("Device Bluetooth MAC Address: %s\n", bdaddr);
-	ret = 0;
-
-out:
-	kfree(iobuf);
-	if (ret) printk("Find MAC Error %d occurred\n", ret);
-	return;
-}
-/**
  * msm_nand_scan - [msm_nand Interface] Scan for the msm_nand device
  * @param mtd		MTD device structure
  * @param maxchips	Number of chips to scan for
@@ -6673,7 +6687,7 @@ int msm_nand_scan(struct mtd_info *mtd, int maxchips)
 	uint32_t devcfg;
 	struct nand_flash_dev *flashdev = NULL;
 	struct nand_manufacturers  *flashman = NULL;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx039xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 	/* Probe the Flash device for ONFI compliance */
 	if (!flash_onfi_probe(chip)) {
 		dev_found = 1;
@@ -6799,6 +6813,17 @@ int msm_nand_scan(struct mtd_info *mtd, int maxchips)
 	if (mtd->oobsize == 64) {
 		mtd->oobavail = msm_nand_oob_64.oobavail;
 		mtd->ecclayout = &msm_nand_oob_64;
+	} else if (mtd->oobsize == 128) {
+		mtd->oobavail = msm_nand_oob_128.oobavail;
+		mtd->ecclayout = &msm_nand_oob_128;
+	} else if (mtd->oobsize == 224) {
+		mtd->oobavail = wide_bus ? msm_nand_oob_224_x16.oobavail :
+			msm_nand_oob_224_x8.oobavail;
+		mtd->ecclayout = wide_bus ? &msm_nand_oob_224_x16 :
+			&msm_nand_oob_224_x8;
+	} else if (mtd->oobsize == 256) {
+		mtd->oobavail = msm_nand_oob_256.oobavail;
+		mtd->ecclayout = &msm_nand_oob_256;
 	} else {
 		pr_err("Unsupported Nand, oobsize: 0x%x \n",
 		       mtd->oobsize);
@@ -6838,7 +6863,6 @@ int msm_nand_scan(struct mtd_info *mtd, int maxchips)
 	/* msm_nand_unlock_all(mtd); */
 
 	/* return this->scan_bbt(mtd); */
-	scanmac(mtd);
 	return 0;
 }
 EXPORT_SYMBOL_GPL(msm_nand_scan);
@@ -6850,7 +6874,7 @@ EXPORT_SYMBOL_GPL(msm_nand_scan);
 void msm_nand_release(struct mtd_info *mtd)
 {
 	/* struct msm_nand_chip *this = mtd->priv; */
-	pr_info("xxxxxxxxxxxxxxxxxxxxx040xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 	/* Deregister the device */
 	mtd_device_unregister(mtd);
 }
@@ -6866,7 +6890,7 @@ struct msm_nand_info {
 static int msm_nand_nc10_xfr_settings(struct mtd_info *mtd)
 {
 	struct msm_nand_chip *chip = mtd->priv;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx041xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 	struct {
 		dmov_s cmd[2];
 		unsigned cmdptr;
@@ -6907,7 +6931,7 @@ static int setup_mtd_device(struct platform_device *pdev,
 {
 	int i, err;
 	struct flash_platform_data *pdata = pdev->dev.platform_data;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx042xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 	if (pdata) {
 		for (i = 0; i < pdata->nr_parts; i++) {
 			pdata->parts[i].offset = pdata->parts[i].offset
@@ -6931,7 +6955,7 @@ static int __devinit msm_nand_probe(struct platform_device *pdev)
 	struct flash_platform_data *plat_data;
 
 	plat_data = pdev->dev.platform_data;
-	pr_info("xxxxxxxxxxxxxxxxxxxxx043xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 	res = platform_get_resource_byname(pdev,
 					IORESOURCE_MEM, "msm_nand_phys");
 	if (!res || !res->start) {
@@ -7055,7 +7079,7 @@ static int __devexit msm_nand_remove(struct platform_device *pdev)
 	struct msm_nand_info *info = dev_get_drvdata(&pdev->dev);
 
 	dev_set_drvdata(&pdev->dev, NULL);
-	pr_info("xxxxxxxxxxxxxxxxxxxxx044xxxxxxxxxxxxxxxxxxxxxxxxx");
+
 	if (info) {
 		msm_nand_release(&info->mtd);
 		dma_free_coherent(NULL, MSM_NAND_DMA_BUFFER_SIZE,
@@ -7081,13 +7105,11 @@ MODULE_ALIAS(DRIVER_NAME);
 
 static int __init msm_nand_init(void)
 {
-	pr_info("xxxxxxxxxxxxxxxxxxxxx046xxxxxxxxxxxxxxxxxxxxxxxxx");
 	return platform_driver_register(&msm_nand_driver);
 }
 
 static void __exit msm_nand_exit(void)
 {
-	pr_info("xxxxxxxxxxxxxxxxxxxxx047xxxxxxxxxxxxxxxxxxxxxxxxx");
 	platform_driver_unregister(&msm_nand_driver);
 }
 
