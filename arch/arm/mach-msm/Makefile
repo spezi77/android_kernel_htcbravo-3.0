@@ -20,7 +20,7 @@ endif
 endif
 
 obj-y += acpuclock.o
-obj-y += drv_callback.o
+obj-y += radio_feedback.o
 obj-$(CONFIG_ARCH_MSM7X01A) += acpuclock-7201.o
 obj-$(CONFIG_ARCH_MSM7X25) += acpuclock-7201.o
 obj-$(CONFIG_ARCH_MSM7X27) += acpuclock-7201.o
@@ -67,7 +67,7 @@ target += smd_rpc_sym.c
 $(obj)/smd_rpc_sym.c: $(src)/smd_rpc_sym $(src)/mkrpcsym.pl
 	$(call if_changed,mkrpcsym)
 
-obj-$(CONFIG_MSM_SCM) += scm.o scm-boot.o htc_simlock-8x60.o htc_sdservice.o htc_debug.o
+obj-$(CONFIG_MSM_SCM) += scm.o scm-boot.o htc_simlock-8x60.o htc_drm.o htc_sdservice.o  htc_debug.o
 ifdef CONFIG_ARCH_MSM8960
 	obj-y += tz_log.o
 endif
@@ -86,7 +86,8 @@ obj-$(CONFIG_ARCH_FSM9XXX) += sirc-fsm9xxx.o
 obj-$(CONFIG_MSM_FIQ_SUPPORT) += fiq_glue.o
 obj-$(CONFIG_MACH_TROUT) += board-trout-rfkill.o
 obj-$(CONFIG_MSM_BAM_DMUX) += bam_dmux.o
-obj-$(CONFIG_MSM_SMD) += remote_spinlock.o socinfo.o
+obj-$(CONFIG_MSM_SMD) += smd.o smd_debug.o remote_spinlock.o
+obj-y += socinfo.o
 ifndef CONFIG_ARCH_MSM9615
 ifndef CONFIG_ARCH_APQ8064
 ifndef CONFIG_ARCH_MSM8960
@@ -157,9 +158,12 @@ obj-$(CONFIG_MSM_IPC_ROUTER) += ipc_router.o
 obj-$(CONFIG_MSM_IPC_ROUTER)+= ipc_socket.o
 obj-$(CONFIG_MSM_DALRPC) += dal.o
 obj-$(CONFIG_MSM_DALRPC_TEST) += dal_remotetest.o
-obj-$(CONFIG_ARCH_MSM7X30) += dal_axi.o htc_sdservice.o
+#obj-$(CONFIG_ARCH_MSM7X30) += dal_axi.o htc_sdservice.o
+obj-$(CONFIG_ARCH_MSM7X30) += dal_axi.o htc_drm.o htc_sdservice.o
 obj-$(CONFIG_ARCH_MSM7X27A) += dal_axi.o
 obj-$(CONFIG_MSM_ADSP) += qdsp5/
+#obj-$(CONFIG_MSM7KV2_AUDIO) += qdsp5v2/
+obj-$(CONFIG_MSM7KV2_AUDIO) += qdsp5v2_2x/
 obj-$(CONFIG_MSM7KV2_AUDIO) += htc_acoustic_7x30.o htc_acdb_7x30.o
 
 obj-$(CONFIG_MSM_QDSP6) += qdsp6/
@@ -218,6 +222,10 @@ ifdef CONFIG_CPU_IDLE
 	obj-$(CONFIG_ARCH_MSM8X60) += cpuidle.o
 	obj-$(CONFIG_ARCH_MSM9615) += cpuidle.o
 endif
+
+obj-$(CONFIG_HTC_35MM_JACK) += htc_35mm_jack.o
+obj-$(CONFIG_ARCH_MSM_FLASHLIGHT) += msm_flashlight.o
+obj-$(CONFIG_HTC_ACOUSTIC_QSD) += htc_acoustic_qsd.o
 
 obj-$(CONFIG_ARCH_FSM9XXX) += devices-fsm9xxx.o
 obj-$(CONFIG_ARCH_FSM9XXX) += clock-fsm9xxx.o clock-local.o acpuclock-fsm9xxx.o
@@ -289,6 +297,16 @@ obj-$(CONFIG_ARCH_MSMCOPPER) += board-copper.o board-dt.o
 obj-$(CONFIG_ARCH_MSM8960) += devices_htc.o htc_wifi_nvs.o htc_awb_cal.o
 obj-$(CONFIG_ARCH_MSM8X60) += devices_htc.o htc_wifi_nvs.o sysinfo-8x60.o emmc_partitions.o htc_awb_cal.o
 
+
+obj-$(CONFIG_MACH_BRAVO) += board-bravo.o board-bravo-panel.o
+obj-$(CONFIG_MACH_BRAVO) += board-bravo-keypad.o board-bravo-mmc.o
+obj-$(CONFIG_MACH_BRAVO) += board-bravo-rfkill.o htc_wifi_nvs.o htc_awb_cal.o
+obj-$(CONFIG_MACH_BRAVO) += board-bravo-wifi.o board-bravo-audio.o
+obj-$(CONFIG_MACH_BRAVO) += msm_vibrator.o
+obj-$(CONFIG_MACH_BRAVO) += devices_htc.o
+obj-$(CONFIG_MACH_BRAVO) += board-bravo-microp.o htc_set_perflock.o
+obj-$(CONFIG_MACH_BRAVO) += board-bravo-tpa2018d1.o
+obj-$(CONFIG_MACH_BRAVO) += board-bravo-smb329.o
 ifeq ($(CONFIG_ARCH_MSM8X60_LTE),y)
 obj-$(CONFIG_ARCH_MSM8X60_LTE) += 8x60-lte/
 else
@@ -529,6 +547,7 @@ obj-$(CONFIG_ARCH_FSM9XXX) += board-fsm9xxx.o
 obj-$(CONFIG_HTC_BATTCHG) += htc_battery.o
 obj-$(CONFIG_HTC_BATT_CORE) += htc_battery_core.o
 obj-$(CONFIG_HTC_BATT8x60) += htc_battery_8x60.o
+obj-$(CONFIG_HTC_PWRSPLY) += htc_power_supply.o
 
 obj-$(CONFIG_HTC_PWRSINK) += htc_pwrsink.o
 obj-$(CONFIG_HTC_HEADSET_MGR) += htc_headset_mgr.o
@@ -539,12 +558,15 @@ obj-$(CONFIG_HTC_HEADSET_PMIC) += htc_headset_pmic.o
 obj-$(CONFIG_HTC_HEADSET_MISC) += htc_headset_misc.o
 obj-$(CONFIG_HTC_HEADSET_MAX8957) += htc_headset_max8957.o
 obj-$(CONFIG_HTC_HEADSET_8X60) += htc_headset_8x60.o
+
 ifeq ($(CONFIG_ARCH_MSM7X30),y)
-	obj-$(CONFIG_MSM_RMT_STORAGE_CLIENT) += rmt_storage_client-7x30.o
+obj-$(CONFIG_MSM_RMT_STORAGE_CLIENT) += rmt_storage_client-7x30.o
+obj-$(CONFIG_MSM_SSBI) += ssbi.o
 else
-	obj-$(CONFIG_MSM_RMT_STORAGE_CLIENT) += rmt_storage_client.o
+ifneq ($(CONFIG_ARCH_QSD8X50),y)
+obj-$(CONFIG_MSM_RMT_STORAGE_CLIENT) += rmt_storage_client.o
 endif
-obj-$(CONFIG_MSM_RMT_STORAGE_SERVER) += rmt_storage_server.o
+endif
 obj-$(CONFIG_MSM_SDIO_SMEM) += sdio_smem.o
 obj-$(CONFIG_MSM_RPM) += rpm.o rpm_resources.o
 obj-$(CONFIG_MSM_MPM) += mpm.o

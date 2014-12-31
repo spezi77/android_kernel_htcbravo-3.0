@@ -52,10 +52,6 @@
 #include "smd_rpc_sym.h"
 #include "smd_private.h"
 
-#if defined(CONFIG_MACH_BRAVO)
-#include "board-htcleo.h"
-#endif
-
 enum {
 	SMEM_LOG = 1U << 0,
 	RTR_DBG = 1U << 1,
