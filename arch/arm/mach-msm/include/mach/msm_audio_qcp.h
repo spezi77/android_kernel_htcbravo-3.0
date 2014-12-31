@@ -1,4 +1,4 @@
-/* Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2009, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -25,28 +25,35 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#ifndef _MACH_QDSP5_V2_AUDIO_ACDB_H
-#define _MACH_QDSP5_V2_AUDIO_ACDB_H
 
-s32 acdb_calibrate_device(void *data);
-s32 acdb_get_calibration(void);
-s32 acdb_send_calibration(void);
-void device_cb(u32 evt_id, union auddev_evt_data *evt, void *private);
-void audpp_cb(void *private, u32 id, u16 *msg);
-void audpreproc_cb(void *private, u32 id, void *msg);
+#ifndef __MSM_AUDIO_QCP_H
+#define __MSM_AUDIO_QCP_H
 
-s32 acdb_initialize_data(void);
-s32 initialize_rpc(void);
-s32 initialize_memory(void);
-s32 register_device_cb(void);
-s32 register_audpp_cb(void);
-s32 register_audpreproc_cb(void);
-s32 acdb_calibrate_audpp(void);
-s32 acdb_calibrate_audpreproc(void);
-s32 acdb_fill_audpp_iir(void);
-s32 acdb_fill_audpp_mbadrc(void);
-s32 acdb_fill_audpreproc_agc(void);
-s32 acdb_fill_audpreproc_iir(void);
+#include <linux/msm_audio.h>
 
-int htc_reinit_acdb(char *filename);
-#endif
+#define CDMA_RATE_BLANK		0x00
+#define CDMA_RATE_EIGHTH	0x01
+#define CDMA_RATE_QUARTER	0x02
+#define CDMA_RATE_HALF		0x03
+#define CDMA_RATE_FULL		0x04
+#define CDMA_RATE_ERASURE	0x05
+
+struct msm_audio_qcelp_config {
+	uint32_t channels;
+	uint32_t cdma_rate;
+	uint32_t min_bit_rate;
+	uint32_t max_bit_rate;
+};
+
+struct msm_audio_evrc_config {
+	uint32_t channels;
+	uint32_t cdma_rate;
+	uint32_t min_bit_rate;
+	uint32_t max_bit_rate;
+	uint8_t bit_rate_reduction;
+	uint8_t hi_pass_filter;
+	uint8_t	noise_suppressor;
+	uint8_t	post_filter;
+};
+
+#endif /* __MSM_AUDIO_QCP_H */

@@ -24,43 +24,44 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
-#ifndef _MACH_QDSP5_V2_MI2S_H
-#define _MACH_QDSP5_V2_MI2S_H
 
-#define WT_16_BIT 0
-#define WT_24_BIT 1
-#define WT_32_BIT 2
-#define WT_MAX 4
+#ifndef _INTERNAL_POWER_RAIL_H
+#define _INTERNAL_POWER_RAIL_H
 
-enum mi2s_ret_enum_type {
-	MI2S_FALSE = 0,
-	MI2S_TRUE
+/* Clock power rail IDs */
+#define PWR_RAIL_GRP_CLK	8
+#define PWR_RAIL_GRP_2D_CLK	58
+#define PWR_RAIL_MDP_CLK	14
+#define PWR_RAIL_MFC_CLK	68
+#define PWR_RAIL_ROTATOR_CLK	90
+#define PWR_RAIL_VDC_CLK	39
+#define PWR_RAIL_VFE_CLK	41
+#define PWR_RAIL_VPE_CLK	76
+
+enum rail_ctl_mode {
+	PWR_RAIL_CTL_AUTO = 0,
+	PWR_RAIL_CTL_MANUAL,
 };
 
-#define MI2S_CHAN_MONO_RAW 0
-#define MI2S_CHAN_MONO_PACKED 1
-#define MI2S_CHAN_STEREO 2
-#define MI2S_CHAN_4CHANNELS 3
-#define MI2S_CHAN_6CHANNELS 4
-#define MI2S_CHAN_8CHANNELS 5
-#define MI2S_CHAN_MAX_OUTBOUND_CHANNELS MI2S__CHAN_8CHANNELS
+#if defined(CONFIG_ARCH_MSM8X60) || defined(CONFIG_ARCH_MSM8960)
+static inline int __maybe_unused internal_pwr_rail_ctl(unsigned rail_id,
+						       bool enable)
+{
+	/* Not yet implemented. */
+	return 0;
+}
+static inline int __maybe_unused internal_pwr_rail_mode(unsigned rail_id,
+							enum rail_ctl_mode mode)
+{
+	/* Not yet implemented. */
+	return 0;
+}
+#else
+int internal_pwr_rail_ctl(unsigned rail_id, bool enable);
+int internal_pwr_rail_mode(unsigned rail_id, enum rail_ctl_mode mode);
+#endif
 
-#define MI2S_SD_0    0x01
-#define MI2S_SD_1    0x02
-#define MI2S_SD_2    0x04
-#define MI2S_SD_3    0x08
+int internal_pwr_rail_ctl_auto(unsigned rail_id, bool enable);
 
-#define MI2S_SD_LINE_MASK    (MI2S_SD_0 | MI2S_SD_1 | MI2S_SD_2 |  MI2S_SD_3)
-
-bool mi2s_set_hdmi_output_path(uint8_t channels, uint8_t size,
-				uint8_t sd_line);
-
-bool mi2s_set_hdmi_input_path(uint8_t channels, uint8_t size, uint8_t sd_line);
-
-bool mi2s_set_codec_output_path(uint8_t channels, uint8_t size);
-
-bool mi2s_set_codec_input_path(uint8_t channels, uint8_t size);
-
-#endif /* #ifndef MI2S_H */
+#endif /* _INTERNAL_POWER_RAIL_H */
