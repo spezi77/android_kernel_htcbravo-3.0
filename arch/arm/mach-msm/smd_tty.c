@@ -32,8 +32,8 @@
 #include <mach/msm_smd.h>
 #include <mach/peripheral-loader.h>
 #include <mach/socinfo.h>
-#ifdef CONFIG_MACH_HTCLEO
-#include "board-htcleo.h"
+#ifdef CONFIG_MACH_BRAVO
+#include "board-bravo.h"
 #endif
 #ifdef CONFIG_MACH_BRAVO
 #include "board-bravo.h"
@@ -405,8 +405,8 @@ static int smd_tty_write(struct tty_struct *tty, const unsigned char *buf, int l
 	if (is_in_reset(info))
 		return -ENETRESET;
 
-#ifdef CONFIG_MACH_HTCLEO
-	if(len>7 && !init && htcleo_is_nand_boot()) {
+#ifdef CONFIG_ARCH_QSD8X50
+	if(len>7 && !init) {
 		pr_info("NAND boot, writing additional init commands to /dev/smd0");
 
 		call_len = strlen(firstcall);
