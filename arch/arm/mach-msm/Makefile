@@ -131,7 +131,12 @@ else # Else CONFIG_ARCH_MSM7X27A
 obj-$(CONFIG_MSM_SMD) += smd.o smd_debug.o
 endif # End CONFIG_ARCH_MSM7X27A
 obj-$(CONFIG_MSM_SMD_TTY) += smd_tty.o
+ifdef CONFIG_MACH_HTCLEO
+obj-$(CONFIG_MSM_SMD) +=  smd_qmi_wince.o
+obj-y += amss_para.o
+else
 obj-$(CONFIG_MSM_SMD_QMI) += smd_qmi.o
+endif
 obj-$(CONFIG_MSM_SMD_PKT) += smd_pkt.o
 obj-$(CONFIG_MSM_SMD_NMEA) += smd_nmea.o
 obj-$(CONFIG_MSM_ONCRPCROUTER) += smd_rpcrouter.o
@@ -170,7 +175,12 @@ obj-$(CONFIG_MSM7KV2_1X_AUDIO) += qdsp5v2_1x/
 obj-$(CONFIG_MSM7KV2_AUDIO) += htc_acoustic_7x30.o htc_acdb_7x30.o
 obj-$(CONFIG_MSM7KV2_1X_AUDIO) += htc_acoustic_7x30.o htc_acdb_7x30.o
 
+ifndef CONFIG_MACH_HTCLEO
 obj-$(CONFIG_MSM_QDSP6) += qdsp6/
+else
+obj-y += dex_comm.o
+obj-$(CONFIG_MSM_QDSP6) += qdsp6/
+endif
 obj-$(CONFIG_MSM8X60_AUDIO) += qdsp6v2_1x/
 obj-$(CONFIG_MSM_AUDIO_QDSP6) += qdsp6v2/
 obj-$(CONFIG_MSM_HW3D) += hw3d.o
@@ -306,7 +316,6 @@ obj-$(CONFIG_ARCH_MSM9615) += rpm-regulator.o rpm-regulator-9615.o
 obj-$(CONFIG_ARCH_MSMCOPPER) += board-copper.o board-dt.o
 obj-$(CONFIG_ARCH_MSM8960) += devices_htc.o htc_wifi_nvs.o htc_awb_cal.o
 obj-$(CONFIG_ARCH_MSM8X60) += devices_htc.o htc_wifi_nvs.o sysinfo-8x60.o emmc_partitions.o htc_awb_cal.o
-
 
 obj-$(CONFIG_MACH_BRAVO) += board-bravo.o board-bravo-panel.o
 obj-$(CONFIG_MACH_BRAVO) += board-bravo-keypad.o board-bravo-mmc.o
@@ -464,7 +473,7 @@ obj-$(CONFIG_MACH_VIVO) += board-vivo-keypad.o
 obj-$(CONFIG_MACH_VIVO)+= board-vivo-mmc.o board-vivo-wifi.o
 obj-$(CONFIG_MACH_VIVO) += display/vivo-panel.o board-vivo-audio.o
 obj-$(CONFIG_MACH_VIVO) += htc_sleep_clk.o htc_fast_clk_7k.o
-obj-$(CONFIG_MACH_VIVO) += htc_bdaddress.o board-vivo-rfkill.o
+obj-$(CONFIG_MACH_VIVO) += htc_bdaddress.o
 obj-$(CONFIG_MACH_VIVOW) += board-vivow.o
 obj-$(CONFIG_MACH_VIVOW) += board-vivow-keypad.o
 obj-$(CONFIG_MACH_VIVOW)+= board-vivow-mmc.o board-vivow-wifi.o
@@ -543,8 +552,7 @@ endif
 
 obj-$(CONFIG_MACH_KINGDOM) += htc_bdaddress.o board-kingdom-rfkill.o
 
-
-obj-$(CONFIG_ARCH_MSM_FLASHLIGHT) += msm_flashlight.o
+obj-$(CONFIG_MACH_KINGDOM) += htc_bdaddress.o board-kingdom-rfkill.o
 
 CFLAGS_msm_vibrator.o += -Idrivers/staging/android
 

@@ -107,10 +107,10 @@ static int _pc_clk_set_min_rate(struct clk *clk, unsigned long rate)
 
 static int pc_clk_set_rate(struct clk *clk, unsigned long rate)
 {
-	if (clk->flags & CLKFLAG_MIN)
-		return _pc_clk_set_min_rate(clk, rate);
-	else
-		return _pc_clk_set_rate(clk, rate);
+  if (clk->flags & CLKFLAG_MIN)
+    return _pc_clk_set_min_rate(clk, rate);
+  else
+    return _pc_clk_set_rate(clk, rate);
 }
 
 static int pc_clk_set_max_rate(struct clk *clk, unsigned long rate)
