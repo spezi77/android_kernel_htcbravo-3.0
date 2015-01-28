@@ -1270,6 +1270,7 @@ static int input_dev_filter(const char *input_dev_name)
 {
 	if (strstr(input_dev_name, "touchscreen") ||
 		strstr(input_dev_name, "himax") ||
+		strstr(input_dev_name, "himax8526a") ||
 	    strstr(input_dev_name, "touch_dev") ||
 	    strstr(input_dev_name, "sec-touchscreen") ||
 	    strstr(input_dev_name, "keypad")) {
