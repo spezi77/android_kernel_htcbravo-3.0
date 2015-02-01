@@ -1245,7 +1245,7 @@ config ARCH_MSM_FLASHLIGHT
 
 config HTC_ACOUSTIC_QSD
 	tristate "HTC acoustic driver for QSD"
-	depends on ARCH_QSD8X50
+	depends on ARCH_QSD8X50 && !REGULATOR_TPS65023
 	default y
 	help
 	Provides user space use shared memory allocate by using RPC code.
