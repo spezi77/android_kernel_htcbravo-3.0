@@ -543,6 +543,7 @@ obj-$(CONFIG_HTC_HEADSET_GPIO) += htc_headset_gpio.o
 obj-$(CONFIG_HTC_HEADSET_MICROP) += htc_headset_microp.o
 obj-$(CONFIG_HTC_HEADSET_PMIC) += htc_headset_pmic.o
 obj-$(CONFIG_HTC_HEADSET_MISC) += htc_headset_misc.o
+obj-$(CONFIG_HTC_HEADSET_ONE_WIRE) += htc_headset_one_wire.o
 obj-$(CONFIG_HTC_HEADSET_MAX8957) += htc_headset_max8957.o
 obj-$(CONFIG_HTC_HEADSET_8X60) += htc_headset_8x60.o
 ifeq ($(CONFIG_ARCH_MSM7X30),y)
