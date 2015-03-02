@@ -133,7 +133,7 @@ static unsigned int up_threshold_any_cpu_load = 95;
 static unsigned int sync_freq = 600000;
 static unsigned int up_threshold_any_cpu_freq = 600000;
 
-static int two_phase_freq_array[NR_CPUS] = {[0 ... NR_CPUS-1] = 678000} ;
+static int two_phase_freq_array[NR_CPUS] = {[0 ... NR_CPUS-1] = 600000} ;
 
 static int cpufreq_governor_intelliactive(struct cpufreq_policy *policy,
 		unsigned int event);
@@ -1269,8 +1269,7 @@ static void interactive_input_event(struct input_handle *handle,
 static int input_dev_filter(const char *input_dev_name)
 {
 	if (strstr(input_dev_name, "touchscreen") ||
-		strstr(input_dev_name, "himax") ||
-		strstr(input_dev_name, "himax8526a") ||
+	    strstr(input_dev_name, "himax-touchscreen") ||
 	    strstr(input_dev_name, "touch_dev") ||
 	    strstr(input_dev_name, "sec-touchscreen") ||
 	    strstr(input_dev_name, "keypad")) {
