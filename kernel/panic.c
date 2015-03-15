@@ -51,6 +51,8 @@ static long no_blink(int state)
 	return 0;
 }
 
+void bravo_reset(void);
+
 /* Returns how long it waited in ms */
 long (*panic_blink)(int state);
 EXPORT_SYMBOL(panic_blink);
@@ -106,7 +108,10 @@ NORET_TYPE void panic(const char * fmt, ...)
 	atomic_notifier_call_chain(&panic_notifier_list, 0, buf);
 
 	bust_spinlocks(0);
-
+	
+	printk("Bravo reset on panic!");
+	bravo_reset();
+	
 	if (!panic_blink)
 		panic_blink = no_blink;
 

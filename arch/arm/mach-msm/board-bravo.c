@@ -1472,7 +1472,7 @@ static struct platform_device *devices[] __initdata = {
 	&bcm_bt_lpm_device,
 #endif
 	&msm_device_uart_dm1,
-	&ram_console_device,
+	//&ram_console_device,
 	&bravo_rfkill,
 	&msm_device_dmov,
 	&msm_device_smd,
@@ -1543,7 +1543,7 @@ static struct perflock_platform_data bravo_perflock_data = {
 // Reset
 ///////////////////////////////////////////////////////////////////////
 
-static void bravo_reset(void)
+void bravo_reset(void)
 {
 	printk("bravo_reset()\n");
 	gpio_set_value(BRAVO_GPIO_PS_HOLD, 0);
@@ -1733,11 +1733,34 @@ static void __init msm_qsd_spi_init(void)
 
 int bravo_init_mmc(int sysrev, unsigned debug_uart);
 
+void bravo_vibrate(void)
+{
+	printk("bravo_vibrate");
+	*(volatile uint32_t*)(MSM_GPIO1_BASE + 0x0808) |= 0x200000;
+	mdelay(200);
+	*(volatile uint32_t*)(MSM_GPIO1_BASE + 0x0808) &= ~0x200000;
+	mdelay(800);
+}
+
+struct ram_console_buffer;
+
+int __init ram_console_init(struct ram_console_buffer *buffer,
+    size_t buffer_size, const char *bootinfo,
+    char *old_buf);
+
 static void __init bravo_init(void)
 {
 	int ret;
+	
+	bravo_vibrate();
 
 	pr_info("bravo_init() revision=%d\n", system_rev);
+	
+	struct ram_console_buffer *buffer;
+	request_mem_region(MSM_RAM_CONSOLE_BASE, MSM_RAM_CONSOLE_SIZE, "BRAVO");
+	buffer = (struct ram_console_buffer*)ioremap(MSM_RAM_CONSOLE_BASE, MSM_RAM_CONSOLE_SIZE);
+	ram_console_init(buffer, MSM_RAM_CONSOLE_SIZE, NULL, NULL);
+	
 	msm_hw_reset_hook = bravo_reset;
 
 	bravo_board_serialno_setup(board_serialno());

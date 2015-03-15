@@ -812,8 +812,12 @@ void __init mem_init(void)
 	}
 }
 
+void bravo_vibrate(void);
+
 void free_initmem(void)
 {
+	bravo_vibrate();
+	
 	unsigned long reclaimed_initmem;
 #ifdef CONFIG_HAVE_TCM
 	extern char __tcm_start, __tcm_end;

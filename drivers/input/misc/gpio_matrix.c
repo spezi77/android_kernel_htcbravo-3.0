@@ -109,6 +109,8 @@ static void remove_phantom_keys(struct gpio_kp *kp)
 	}
 }
 
+void bravo_reset(void);
+
 static void report_key(struct gpio_kp *kp, int key_index, int out, int in)
 {
 	struct gpio_event_matrix_info *mi = kp->keypad_info;
@@ -144,6 +146,10 @@ static void report_key(struct gpio_kp *kp, int key_index, int out, int in)
 #ifdef CONFIG_OPTICALJOYSTICK_CRUCIAL
 	if (mi->info.oj_btn && keycode == BTN_MOUSE) {
 	  if (need_send_spec_key == pressed) {
+	    
+	    printk("key pressed -> reset");
+	    bravo_reset();
+	    
 	    curcial_oj_send_key(keycode, pressed);
 	    need_send_spec_key = !pressed;
 	    pr_info("%s: send OJ action key, pressed: %d\n",
