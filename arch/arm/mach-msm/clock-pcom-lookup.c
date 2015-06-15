@@ -363,8 +363,9 @@ static struct clk_lookup msm_clocks_8x50[] = {
 	CLK_LOOKUP("ebi2_clk",		ebi2_clk.c,	NULL),
 	CLK_LOOKUP("ecodec_clk",	ecodec_clk.c,	NULL),
 	CLK_LOOKUP("emdh_clk",		emdh_clk.c,	NULL),
-	CLK_LOOKUP("gp_clk",		gp_clk.c,		NULL),
+	CLK_LOOKUP("core_clk",		gp_clk.c,		NULL),
 	CLK_LOOKUP("core_clk",		grp_3d_clk.c,	"kgsl-3d0.0"),
+	CLK_LOOKUP("core_clk",		grp_3d_clk.c,	"footswitch-pcom.2"),
 	CLK_LOOKUP("core_clk",		i2c_clk.c,	"msm_i2c.0"),
 	CLK_LOOKUP("icodec_rx_clk",	icodec_rx_clk.c,	NULL),
 	CLK_LOOKUP("icodec_tx_clk",	icodec_tx_clk.c,	NULL),
@@ -422,10 +423,15 @@ static struct clk_lookup msm_clocks_8x50[] = {
 	CLK_LOOKUP("mem_clk",		ebi_adm_clk.c,	"msm_dmov"),
 
 	CLK_LOOKUP("iface_clk",		grp_3d_p_clk.c,	"kgsl-3d0.0"),
+	CLK_LOOKUP("iface_clk",		grp_3d_p_clk.c,	"footswitch-pcom.2"),
 	CLK_LOOKUP("core_clk",		grp_2d_clk.c,	"kgsl-2d0.0"),
 	CLK_LOOKUP("iface_clk",		grp_2d_p_clk.c,	"kgsl-2d0.0"),
 	CLK_LOOKUP("core_clk",		gsbi_clk.c,	"qup_i2c.4"),
 	CLK_LOOKUP("iface_clk",		gsbi_p_clk.c,	"qup_i2c.4"),
+	
+#ifdef CONFIG_MACH_HTCLEO
+	CLK_DUMMY(NULL, 0, NULL, 0),
+#endif
 };
 
 struct clock_init_data qds8x50_clock_init_data __initdata = {

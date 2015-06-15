@@ -138,7 +138,7 @@ config CODEC_AIC3008
 
 config SOUND_CONTROL_HAX_GPL
 	tristate "HTC sound control hax"
-	default y
+	default n
 	help
 	  HTC audio chipsets sound control hacks
 

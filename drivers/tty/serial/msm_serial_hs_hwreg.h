@@ -1,6 +1,6 @@
 /* drivers/serial/msm_serial_hs_hwreg.h
  *
- * Copyright (c) 2007-2009, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2007-2009, Code Aurora Forum. All rights reserved.
  * 
  * All source code in this file is licensed under the following license
  * except where indicated.
@@ -51,9 +51,7 @@ enum msm_hsl_regs {
 	UARTDM_NCF_TX,
 	UARTDM_DMEN,
 	UARTDM_BCR,
-	UARTDM_TXFS,
-	UARTDM_RXFS,
-	UARTDM_LAST,
+	UARTDM_LAST
 };
 
 #define UARTDM_MR1_ADDR 0x0
@@ -120,7 +118,6 @@ enum msm_hsl_regs {
 #define UARTDM_ISR_ADDR 0x14
 #define UARTDM_RX_TOTAL_SNAP_ADDR 0x38
 
-#define UARTDM_TXFS_ADDR 0x4C
 #define UARTDM_RXFS_ADDR 0x50
 
 /* Register field Mask Mapping */
@@ -180,8 +177,8 @@ enum msm_hsl_regs {
 
 /* Parity configuration */
 #define NO_PARITY 0x0
-#define EVEN_PARITY 0x2
-#define ODD_PARITY 0x1
+#define EVEN_PARITY 0x1
+#define ODD_PARITY 0x2
 #define SPACE_PARITY 0x3
 
 #define UARTDM_IPR_STALE_TIMEOUT_MSB_BMSK 0xffffff80
