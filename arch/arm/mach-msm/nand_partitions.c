@@ -33,7 +33,9 @@
 #include <mach/msm_iomap.h>
 
 #include <mach/board.h>
+#ifdef CONFIG_MSM_SMD
 #include "smd_private.h"
+#endif
 
 /* configuration tags specific to msm */
 
@@ -181,7 +183,11 @@ static int get_nand_partitions(void)
 
 	printk(KERN_WARNING "%s: no partition table found!", __func__);
 
+#ifdef CONFIG_MACH_HTCLEO
+	return 0;
+#else
 	return -ENODEV;
+#endif
 }
 
 device_initcall(get_nand_partitions);

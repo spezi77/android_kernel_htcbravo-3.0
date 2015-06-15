@@ -32,6 +32,9 @@
 #include <mach/msm_smd.h>
 #include <mach/peripheral-loader.h>
 #include <mach/socinfo.h>
+#ifdef CONFIG_MACH_HTCLEO
+#include "board-htcleo.h"
+#endif
 
 #include "smd_private.h"
 
@@ -64,11 +67,19 @@ struct smd_tty_info {
 #define LOOPBACK_IDX 36
 static char *smd_ch_name[] = {
 	[0] = "DS",
+#ifdef CONFIG_MACH_HTCLEO
+	[1] = "DATA1",
+#else
 	[1] = "APPS_FM",
+#endif
 	[2] = "APPS_RIVA_BT_ACL",
 	[3] = "APPS_RIVA_BT_CMD",
 	[4] = "MBALBRIDGE",
+#ifdef CONFIG_MACH_HTCLEO
+	[7] = "APPS_FM",
+#else
 	[7] = "DATA1",
+#endif
 	/* Use DATA4 rather than DATA9 for modemlind on 8x60 */
 	[9] = "DATA4",
 #ifdef CONFIG_BUILD_OMA_DM
@@ -84,11 +95,19 @@ static char *smd_ch_name[] = {
 
 static uint32_t smd_ch_edge[] = {
 	[0] = SMD_APPS_MODEM,
+#ifdef CONFIG_MACH_HTCLEO
+	[1] = SMD_APPS_MODEM,
+#else
 	[1] = SMD_APPS_WCNSS,
+#endif
 	[2] = SMD_APPS_WCNSS,
 	[3] = SMD_APPS_WCNSS,
 	[4] = SMD_APPS_MODEM,
+#ifdef CONFIG_MACH_HTCLEO
+	[7] = SMD_APPS_WCNSS,
+#else
 	[7] = SMD_APPS_MODEM,
+#endif
 	/* Use DATA4 rather than DATA9 for modemlind on 8x60 */
 	[9] = SMD_APPS_MODEM,
 #ifdef CONFIG_BUILD_OMA_DM
@@ -364,7 +383,17 @@ static void smd_tty_close(struct tty_struct *tty, struct file *f)
 static int smd_tty_write(struct tty_struct *tty, const unsigned char *buf, int len)
 {
 	struct smd_tty_info *info = tty->driver_data;
-	int avail;
+	int avail, ret;
+#ifdef CONFIG_MACH_HTCLEO
+	static int init = 0;
+	// seems to start the modem
+	const unsigned char* firstcall ="AT@BRIC=0\r";
+	// set functionality to low power mode
+	const unsigned char* secondcall="AT+CFUN=0\r";
+	// deregister from the network
+	const unsigned char* thirdcall ="AT+COPS=2\r";
+	unsigned int call_len;
+#endif
 
 	/* if we're writing to a packet channel we will
 	** never be able to write more data than there
@@ -372,6 +401,32 @@ static int smd_tty_write(struct tty_struct *tty, const unsigned char *buf, int l
 	*/
 	if (is_in_reset(info))
 		return -ENETRESET;
+
+#ifdef CONFIG_MACH_HTCLEO
+	if(len>7 && !init && htcleo_is_nand_boot()) {
+		pr_info("NAND boot, writing additional init commands to /dev/smd0");
+
+		call_len = strlen(firstcall);
+		avail = smd_write_avail(info->ch);
+		if (call_len > avail)
+			call_len = avail;
+		ret = smd_write(info->ch, firstcall, call_len);
+
+		call_len = strlen(secondcall);
+		avail = smd_write_avail(info->ch);
+		if (call_len > avail)
+			call_len = avail;
+		ret = smd_write(info->ch, secondcall, call_len);
+
+		call_len = strlen(thirdcall);
+		avail = smd_write_avail(info->ch);
+		if (call_len > avail)
+			call_len = avail;
+		ret = smd_write(info->ch, thirdcall, call_len);
+
+		init=1;
+	}
+#endif
 
 	avail = smd_write_avail(info->ch);
 	/* if no space, we'll have to setup a notification later to wake up the

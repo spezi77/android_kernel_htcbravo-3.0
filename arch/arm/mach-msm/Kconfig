@@ -51,7 +51,7 @@ config ARCH_QSD8X50
 	select CPU_USE_DOMAINS
 	select EMULATE_DOMAIN_MANAGER_V7
 	select MSM_GPIOMUX
-	select MSM_DALRPC
+	select MSM_DALRPC if !MACH_HTCLEO
 
 config ARCH_MSM8X60
 	bool "MSM8X60"
@@ -387,6 +387,13 @@ config MACH_PRIMODD
 		bool "Primodd_ct"
 		help
 			Support for Primodd_ct (PDA phone).
+
+config MACH_HTCLEO
+	depends on ARCH_QSD8X50
+	default y
+	bool "HTC Leo"
+	help
+	  Select this to support the HTC Leo device
 
 config MACH_PRIMODS
 		depends on ARCH_MSM7X27A
@@ -946,6 +953,7 @@ config PHYS_OFFSET
 	default "0x00200000" if !MSM_STACKED_MEMORY
 	default "0x00000000" if ARCH_QSD8X50 && MSM_SOC_REV_A
 	default "0x20000000" if ARCH_QSD8X50
+	default "0x11800000" if MACH_HTCLEO
 	default "0x48000000" if ARCH_MSM8X60
 	default "0x10000000"
 
@@ -991,6 +999,7 @@ config MSM_AMSS_VERSION
 	default 3200 if MSM_AMSS_VERSION_3200
 	default 1170 if MSM_AMSS_VERSION_1170
 	default 1200 if MSM_AMSS_VERSION_1200
+	default 1550 if MSM_AMSS_VERSION_1550
 
 choice
 	prompt "AMSS modem firmware version"
@@ -1032,6 +1041,9 @@ choice
 
 	config MSM_AMSS_VERSION_1200
 		bool "1.2.00"
+
+	config MSM_AMSS_VERSION_1550
+		bool "1.5.50"
 
 endchoice
 
@@ -1841,6 +1853,11 @@ config QSD_AUDIO
 	help
 	  Provides PCM, MP3, and AAC audio playback.
 
+config QSD_AUDIO_CALLREC
+	bool "Call recording support [avs333]"
+	depends on QSD_AUDIO || MSM_QDSP6
+	default n
+
 config AUDIO_AAC_PLUS
 	depends on (MSM_ADSP || QSD_AUDIO || MSM7KV2_AUDIO)
 	bool "AAC+ Audio"
@@ -1951,11 +1968,58 @@ config MSM_IDLE_WAIT_ON_MODEM
 	  for idle power collapse, wait the number of microseconds in case
 	  Modem becomes ready soon.
 
-config MICROP_COMMON
-	tristate "MICROP COMMON Driver"
-	depends on I2C
+config HTCLEO_ENABLE_MULTI_TOUCH
+	bool "Support for multitouch"
+	default y
+	depends on MACH_HTCLEO
 	help
-	  HTC Microp-P support.
+		Add multitouch support for touchscreen
+
+config HTCLEO_TOUCHSCREEN_FILTER
+	bool "Enable touchscreen filter"
+	default y
+	depends on MACH_HTCLEO
+	help
+		Enable input filtering for touchscreen
+
+choice
+	prompt "HTCLEO Keymapping"
+	default HTCLEO_KEYMAP_ANDROID
+
+	config HTCLEO_KEYMAP_ANDROID
+		bool "Keymapping for Android"
+	help
+		Optimized for the default Android GUI
+
+	config HTCLEO_KEYMAP_DPAD
+		bool "Alternative Keymapping"
+	help
+		Useful in GUIs not designed for touch-only use as this enables
+		four direction keys, alt key and enter key. Assumes landscape orientation.
+endchoice
+
+choice
+	prompt "HTCLEO Backlight API type"
+	default HTCLEO_BACKLIGHT_LED
+
+	config HTCLEO_BACKLIGHT_LED
+		bool "Backlight control via LED API"
+	help
+		Needed by Google Android
+
+	config HTCLEO_BACKLIGHT
+	select BACKLIGHT_LCD_SUPPORT
+		bool "Standard backlight API"
+	help
+		Works in standard Linux distros. Tested in GNOME.
+endchoice
+
+config HTCLEO_BTN_BACKLIGHT_MANAGER
+	depends on MACH_HTCLEO
+	default y
+	bool "Use button backlight manager"
+	help
+	  Use kernel button backlight manager to turn on/off backlight
 
 config HTC_HEADSET_MGR
 	tristate "HTC headset manager driver"

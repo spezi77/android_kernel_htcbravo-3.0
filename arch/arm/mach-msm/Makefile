@@ -8,7 +8,9 @@ obj-$(CONFIG_FORCE_FAST_CHARGE) += fastchg.o
 
 obj-$(CONFIG_MSM_PROC_COMM) += proc_comm.o
 ifndef CONFIG_ARCH_MSM8X60
+ifndef CONFIG_MACH_HTCLEO
 	obj-$(CONFIG_MSM_PROC_COMM) += clock-pcom.o
+endif
 	obj-$(CONFIG_MSM_PROC_COMM) += vreg.o mpp.o
 	ifdef CONFIG_MSM_PROC_COMM
 ifndef CONFIG_ARCH_FSM9XXX
@@ -128,7 +130,12 @@ else # Else CONFIG_ARCH_MSM7X27A
 obj-$(CONFIG_MSM_SMD) += smd.o smd_debug.o
 endif # End CONFIG_ARCH_MSM7X27A
 obj-$(CONFIG_MSM_SMD_TTY) += smd_tty.o
+ifdef CONFIG_MACH_HTCLEO
+obj-$(CONFIG_MSM_SMD) +=  smd_qmi_wince.o
+obj-y += amss_para.o
+else
 obj-$(CONFIG_MSM_SMD_QMI) += smd_qmi.o
+endif
 obj-$(CONFIG_MSM_SMD_PKT) += smd_pkt.o
 obj-$(CONFIG_MSM_SMD_NMEA) += smd_nmea.o
 obj-$(CONFIG_MSM_ONCRPCROUTER) += smd_rpcrouter.o
@@ -167,7 +174,12 @@ obj-$(CONFIG_MSM7KV2_1X_AUDIO) += qdsp5v2_1x/
 obj-$(CONFIG_MSM7KV2_AUDIO) += htc_acoustic_7x30.o htc_acdb_7x30.o
 obj-$(CONFIG_MSM7KV2_1X_AUDIO) += htc_acoustic_7x30.o htc_acdb_7x30.o
 
+ifndef CONFIG_MACH_HTCLEO
 obj-$(CONFIG_MSM_QDSP6) += qdsp6/
+else
+obj-y += dex_comm.o
+obj-$(CONFIG_MSM_QDSP6) += qdsp6_1550/
+endif
 obj-$(CONFIG_MSM8X60_AUDIO) += qdsp6v2_1x/
 obj-$(CONFIG_MSM_AUDIO_QDSP6) += qdsp6v2/
 obj-$(CONFIG_MSM_HW3D) += hw3d.o
@@ -298,6 +310,18 @@ obj-$(CONFIG_ARCH_MSM9615) += rpm-regulator.o rpm-regulator-9615.o
 obj-$(CONFIG_ARCH_MSMCOPPER) += board-copper.o board-dt.o
 obj-$(CONFIG_ARCH_MSM8960) += devices_htc.o htc_wifi_nvs.o htc_awb_cal.o
 obj-$(CONFIG_ARCH_MSM8X60) += devices_htc.o htc_wifi_nvs.o sysinfo-8x60.o emmc_partitions.o htc_awb_cal.o
+
+
+obj-$(CONFIG_MACH_HTCLEO) += clock-wince.o amss_para.o htc_sdservice.o htc_drm.o
+obj-$(CONFIG_MACH_HTCLEO) += board-htcleo-wifi-nvs.o board-htcleo.o board-htcleo-panel.o board-htcleo-keypad.o
+obj-$(CONFIG_MACH_HTCLEO) += board-htcleo-ts.o board-htcleo-mmc.o ieee754-df.o
+
+obj-$(CONFIG_MACH_HTCLEO) += board-htcleo-audio.o board-htcleo-acoustic.o
+obj-$(CONFIG_MACH_HTCLEO) += board-htcleo-rfkill.o board-htcleo-wifi.o board-htcleo-microp.o htc_awb_cal.o
+obj-$(CONFIG_MACH_HTCLEO) += board-htcleo-proximity.o board-htcleo-ls.o devices_htc.o board-htcleo-gsensor.o
+obj-$(CONFIG_HTCLEO_BACKLIGHT) += board-htcleo-bl.o
+obj-$(CONFIG_HTCLEO_BACKLIGHT_LED) += board-htcleo-bl-led.o
+obj-$(CONFIG_HTCLEO_BTN_BACKLIGHT_MANAGER) += board-htcleo-btn_backlight-manager.o
 
 ifeq ($(CONFIG_ARCH_MSM8X60_LTE),y)
 obj-$(CONFIG_ARCH_MSM8X60_LTE) += 8x60-lte/
@@ -524,6 +548,9 @@ endif
 
 obj-$(CONFIG_MACH_KINGDOM) += htc_bdaddress.o board-kingdom-rfkill.o
 
+
+obj-$(CONFIG_ARCH_MSM_FLASHLIGHT) += msm_flashlight.o
+
 CFLAGS_msm_vibrator.o += -Idrivers/staging/android
 
 obj-$(CONFIG_ARCH_FSM9XXX) += board-fsm9xxx.o
@@ -541,7 +568,6 @@ obj-$(CONFIG_HTC_HEADSET_GPIO) += htc_headset_gpio.o
 obj-$(CONFIG_HTC_HEADSET_MICROP) += htc_headset_microp.o
 obj-$(CONFIG_HTC_HEADSET_PMIC) += htc_headset_pmic.o
 obj-$(CONFIG_HTC_HEADSET_MISC) += htc_headset_misc.o
-obj-$(CONFIG_HTC_HEADSET_ONE_WIRE) += htc_headset_one_wire.o
 obj-$(CONFIG_HTC_HEADSET_MAX8957) += htc_headset_max8957.o
 obj-$(CONFIG_HTC_HEADSET_8X60) += htc_headset_8x60.o
 ifeq ($(CONFIG_ARCH_MSM7X30),y)
