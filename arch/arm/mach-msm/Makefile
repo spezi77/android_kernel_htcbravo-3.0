@@ -312,7 +312,7 @@ obj-$(CONFIG_ARCH_MSM8960) += devices_htc.o htc_wifi_nvs.o htc_awb_cal.o
 obj-$(CONFIG_ARCH_MSM8X60) += devices_htc.o htc_wifi_nvs.o sysinfo-8x60.o emmc_partitions.o htc_awb_cal.o
 
 
-obj-$(CONFIG_MACH_HTCLEO) += clock-wince.o amss_para.o htc_sdservice.o htc_drm.o
+obj-$(CONFIG_MACH_HTCLEO) += clock-wince.o amss_para.o
 obj-$(CONFIG_MACH_HTCLEO) += board-htcleo-wifi-nvs.o board-htcleo.o board-htcleo-panel.o board-htcleo-keypad.o
 obj-$(CONFIG_MACH_HTCLEO) += board-htcleo-ts.o board-htcleo-mmc.o ieee754-df.o
 
