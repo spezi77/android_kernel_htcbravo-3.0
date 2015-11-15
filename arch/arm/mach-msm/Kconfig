@@ -392,6 +392,13 @@ config MACH_HTCLEO
 	help
 	  Select this to support the HTC Leo device
 
+config MACH_BRAVO
+		depends on ARCH_QSD8X50
+		default n
+		bool "HTC Bravo"
+		help
+			Select this to support the HTC Bravo device
+
 config MACH_PRIMODS
 		depends on ARCH_MSM7X27A
 		depends on !MSM_STACKED_MEMORY

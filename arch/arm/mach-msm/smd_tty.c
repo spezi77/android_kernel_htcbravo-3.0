@@ -35,6 +35,9 @@
 #ifdef CONFIG_MACH_HTCLEO
 #include "board-htcleo.h"
 #endif
+#ifdef CONFIG_MACH_BRAVO
+#include "board-bravo.h"
+#endif
 
 #include "smd_private.h"
 
@@ -384,7 +387,7 @@ static int smd_tty_write(struct tty_struct *tty, const unsigned char *buf, int l
 {
 	struct smd_tty_info *info = tty->driver_data;
 	int avail, ret;
-#ifdef CONFIG_MACH_HTCLEO
+#ifdef CONFIG_ARCH_QSD8X50
 	static int init = 0;
 	// seems to start the modem
 	const unsigned char* firstcall ="AT@BRIC=0\r";
@@ -404,6 +407,31 @@ static int smd_tty_write(struct tty_struct *tty, const unsigned char *buf, int l
 
 #ifdef CONFIG_MACH_HTCLEO
 	if(len>7 && !init && htcleo_is_nand_boot()) {
+		pr_info("NAND boot, writing additional init commands to /dev/smd0");
+
+		call_len = strlen(firstcall);
+		avail = smd_write_avail(info->ch);
+		if (call_len > avail)
+			call_len = avail;
+		ret = smd_write(info->ch, firstcall, call_len);
+
+		call_len = strlen(secondcall);
+		avail = smd_write_avail(info->ch);
+		if (call_len > avail)
+			call_len = avail;
+		ret = smd_write(info->ch, secondcall, call_len);
+
+		call_len = strlen(thirdcall);
+		avail = smd_write_avail(info->ch);
+		if (call_len > avail)
+			call_len = avail;
+		ret = smd_write(info->ch, thirdcall, call_len);
+
+		init=1;
+	}
+#endif
+#ifdef CONFIG_MACH_BRAVO
+	if(len>7 && !init) {
 		pr_info("NAND boot, writing additional init commands to /dev/smd0");
 
 		call_len = strlen(firstcall);

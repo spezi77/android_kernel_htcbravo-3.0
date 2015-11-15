@@ -21,7 +21,7 @@
 #include <linux/slab.h>
 #include <linux/random.h>
 
-#if !defined(CONFIG_ARCH_MSM7X30) && !defined(CONFIG_ARCH_MSM7X27A)
+#ifndef CONFIG_ARCH_MSM7X30
 #include <mach/scm.h>
 #else	/* CONFIG_ARCH_MSM7X30 */
 #include <linux/platform_device.h>
@@ -55,14 +55,14 @@
 #define WIDEVINE_KEYBOX_LEN		128
 
 #undef PDEBUG
-#define PDEBUG(fmt, args...) printk(KERN_INFO "[K] %s(%i, %s): " fmt "\n", \
+#define PDEBUG(fmt, args...) printk(KERN_INFO "%s(%i, %s): " fmt "\n", \
 		__func__, current->pid, current->comm, ## args)
 
 #undef PERR
-#define PERR(fmt, args...) printk(KERN_ERR "[K] %s(%i, %s): " fmt "\n", \
+#define PERR(fmt, args...) printk(KERN_ERR "%s(%i, %s): " fmt "\n", \
 		__func__, current->pid, current->comm, ## args)
 
-#if !defined(CONFIG_ARCH_MSM7X30) && !defined(CONFIG_ARCH_MSM7X27A)
+#ifndef CONFIG_ARCH_MSM7X30
 #define UP(S)
 #else
 #define UP(S) up(S)
@@ -88,7 +88,7 @@ enum {
 		HTC_OEMCRYPTO_IS_KEYBOX_VALID,
 };
 
-#if defined(CONFIG_ARCH_MSM7X30) || defined(CONFIG_ARCH_MSM7X27A)
+#ifdef CONFIG_ARCH_MSM7X30
 struct htc_keybox_dev {
 	struct platform_device *pdev;
 	struct cdev cdev;
@@ -287,22 +287,22 @@ static ssize_t htc_keybox_read(struct htc_keybox_dev *dev, char *buf, size_t siz
 	memset(dev->keybox_buf, 56, OEM_RAPI_CLIENT_MAX_OUT_BUFF_SIZE);
 	memset(nullbuf, 0, OEM_RAPI_CLIENT_MAX_OUT_BUFF_SIZE);
 
-	printk(KERN_INFO "[K] htc_keybox_read start:\n");
+	printk(KERN_INFO "htc_keybox_read start:\n");
 	if (p >= OEM_RAPI_CLIENT_MAX_OUT_BUFF_SIZE)
 		return count ? -ENXIO : 0;
 
-	printk(KERN_INFO "[K] htc_keybox_read oem_rapi_client_streaming_function start:\n");
+	printk(KERN_INFO "htc_keybox_read oem_rapi_client_streaming_function start:\n");
 	if (count == 0xFF) {
 		arg.event = OEM_RAPI_CLIENT_EVENT_WIDEVINE_READ_DEVICE_ID;
 		memset(dev->keybox_buf, 57, OEM_RAPI_CLIENT_MAX_OUT_BUFF_SIZE);
-		printk(KERN_INFO "[K] htc_keybox_read: OEM_RAPI_CLIENT_EVENT_WIDEVINE_READ_DEVICE_ID\n");
+		printk(KERN_INFO "htc_keybox_read: OEM_RAPI_CLIENT_EVENT_WIDEVINE_READ_DEVICE_ID\n");
 	} else if (count > OEM_RAPI_CLIENT_MAX_OUT_BUFF_SIZE - p) {
 		count = OEM_RAPI_CLIENT_MAX_OUT_BUFF_SIZE - p;
 		arg.event = OEM_RAPI_CLIENT_EVENT_WIDEVINE_READ_KEYBOX;
-		printk(KERN_INFO "[K] htc_keybox_read: OEM_RAPI_CLIENT_EVENT_WIDEVINE_READ_KEYBOX\n");
+		printk(KERN_INFO "htc_keybox_read: OEM_RAPI_CLIENT_EVENT_WIDEVINE_READ_KEYBOX\n");
 	} else {
 		arg.event = OEM_RAPI_CLIENT_EVENT_WIDEVINE_READ_KEYBOX;
-		printk(KERN_INFO "[K] htc_keybox_read: OEM_RAPI_CLIENT_EVENT_WIDEVINE_READ_KEYBOX\n");
+		printk(KERN_INFO "htc_keybox_read: OEM_RAPI_CLIENT_EVENT_WIDEVINE_READ_KEYBOX\n");
 	}
 	arg.cb_func = NULL;
 	arg.handle = (void *)0;
@@ -316,10 +316,10 @@ static ssize_t htc_keybox_read(struct htc_keybox_dev *dev, char *buf, size_t siz
 
 	ret_rpc = oem_rapi_client_streaming_function(rpc_client, &arg, &ret);
 	if (ret_rpc) {
-		printk(KERN_INFO "[K] %s: Get data from modem failed: %d\n", __func__, ret_rpc);
+		printk(KERN_INFO "%s: Get data from modem failed: %d\n", __func__, ret_rpc);
 		return -EFAULT;
 	}
-	printk(KERN_INFO "[K] %s: Data obtained from modem %d, ", __func__, *(ret.out_len));
+	printk(KERN_INFO "%s: Data obtained from modem %d, ", __func__, *(ret.out_len));
 	memcpy(dev->keybox_buf, ret.output, *(ret.out_len));
 	kfree(ret.out_len);
 	kfree(ret.output);
@@ -334,12 +334,12 @@ static ssize_t htc_keybox_write(struct htc_keybox_dev *dev, const char *buf, siz
 	struct oem_rapi_client_streaming_func_arg arg;
 	struct oem_rapi_client_streaming_func_ret ret;
 
-	printk(KERN_INFO "[K] htc_keybox_write start:\n");
+	printk(KERN_INFO "htc_keybox_write start:\n");
 	if (p >= OEM_RAPI_CLIENT_MAX_OUT_BUFF_SIZE)
 		return count ? -ENXIO : 0;
 	if (count > OEM_RAPI_CLIENT_MAX_OUT_BUFF_SIZE - p)
 		count = OEM_RAPI_CLIENT_MAX_OUT_BUFF_SIZE - p;
-	printk(KERN_INFO "[K] htc_keybox_write oem_rapi_client_streaming_function start:\n");
+	printk(KERN_INFO "htc_keybox_write oem_rapi_client_streaming_function start:\n");
 	arg.event = OEM_RAPI_CLIENT_EVENT_WIDEVINE_WRITE_KEYBOX;
 	arg.cb_func = NULL;
 	arg.handle = (void *)0;
@@ -353,10 +353,10 @@ static ssize_t htc_keybox_write(struct htc_keybox_dev *dev, const char *buf, siz
 
 	ret_rpc = oem_rapi_client_streaming_function(rpc_client, &arg, &ret);
 	if (ret_rpc) {
-		printk(KERN_INFO "[K] %s: Send data from modem failed: %d\n", __func__, ret_rpc);
+		printk(KERN_INFO "%s: Send data from modem failed: %d\n", __func__, ret_rpc);
 		return -EFAULT;
 	}
-	printk(KERN_INFO "[K] %s: Data sent to modem %s\n", __func__, dev->keybox_buf);
+	printk(KERN_INFO "%s: Data sent to modem %s\n", __func__, dev->keybox_buf);
 
 	return 0;
 }
@@ -379,7 +379,7 @@ static long htcdrm_ioctl(struct file *file, unsigned int command, unsigned long 
 			PERR("copy_from_user error (msg)");
 			return -EFAULT;
 		}
-#if defined(CONFIG_ARCH_MSM7X30) || defined(CONFIG_ARCH_MSM7X27A)
+#ifdef CONFIG_ARCH_MSM7X30
 		oem_rapi_client_init();
 		if (down_interruptible(&keybox_dev->sem)) {
 			PERR("interrupt error");
@@ -399,7 +399,7 @@ static long htcdrm_ioctl(struct file *file, unsigned int command, unsigned long 
 				UP(&keybox_dev->sem);
 				return -EFAULT;
 			}
-#if defined(CONFIG_ARCH_MSM7X30) || defined(CONFIG_ARCH_MSM7X27A)
+#ifdef CONFIG_ARCH_MSM7X30
 			memcpy(keybox_dev->keybox_buf, htc_keybox, WIDEVINE_KEYBOX_LEN);
 			ret = htc_keybox_write(keybox_dev, htc_keybox, hmsg.req_len, hmsg.offset);
 			oem_rapi_client_close();
@@ -418,7 +418,7 @@ static long htcdrm_ioctl(struct file *file, unsigned int command, unsigned long 
 				UP(&keybox_dev->sem);
 				return -EFAULT;
 			}
-#if defined(CONFIG_ARCH_MSM7X30) || defined(CONFIG_ARCH_MSM7X27A)
+#ifdef CONFIG_ARCH_MSM7X30
 			ret = htc_keybox_read(keybox_dev, htc_keybox, hmsg.resp_len, hmsg.offset);
 			oem_rapi_client_close();
 			htc_keybox = keybox_dev->keybox_buf;
@@ -444,7 +444,7 @@ static long htcdrm_ioctl(struct file *file, unsigned int command, unsigned long 
 				return -EFAULT;
 			}
 
-#if defined(CONFIG_ARCH_MSM7X30) || defined(CONFIG_ARCH_MSM7X27A)
+#ifdef CONFIG_ARCH_MSM7X30
 			ret = htc_keybox_read(keybox_dev, htc_device_id, hmsg.resp_len, hmsg.offset);
 			oem_rapi_client_close();
 			htc_device_id = keybox_dev->keybox_buf;
@@ -475,9 +475,9 @@ static long htcdrm_ioctl(struct file *file, unsigned int command, unsigned long 
 				UP(&keybox_dev->sem);
 				return -1;
 			}
-#if defined(CONFIG_ARCH_MSM7X30) || defined(CONFIG_ARCH_MSM7X27A)
+#ifdef CONFIG_ARCH_MSM7X30
 			get_random_bytes(ptr, hmsg.resp_len);
-			printk(KERN_INFO "[K] %s: Data get from random entropy ", __func__);
+			printk(KERN_INFO "%s: Data get from random entropy ", __func__);
 #else
 			get_random_bytes(ptr, hmsg.resp_len);
 			/* FIXME: second time of this function call will hang
@@ -498,8 +498,7 @@ static long htcdrm_ioctl(struct file *file, unsigned int command, unsigned long 
 			kfree(ptr);
 			break;
 		case HTC_OEMCRYPTO_IS_KEYBOX_VALID:
-#if defined(CONFIG_ARCH_MSM7X30) || defined(CONFIG_ARCH_MSM7X27A)
-#else
+#ifndef CONFIG_ARCH_MSM7X30
 			ret = secure_access_item(0, ITEM_VALIDATE_KEYBOX, WIDEVINE_KEYBOX_LEN, NULL);
 #endif
 			UP(&keybox_dev->sem);
@@ -552,7 +551,7 @@ static int __init htcdrm_init(void)
 	htcdrm_class = class_create(THIS_MODULE, "htcdrm");
 	device_create(htcdrm_class, NULL, MKDEV(htcdrm_major, 0), NULL, DEVICE_NAME);
 
-#if defined(CONFIG_ARCH_MSM7X30) || defined(CONFIG_ARCH_MSM7X27A)
+#ifdef CONFIG_ARCH_MSM7X30
 	keybox_dev = kzalloc(sizeof(htc_keybox_dev), GFP_KERNEL);
 	if (keybox_dev == NULL) {
 		PERR("allocate space for keybox_dev failed\n");
@@ -574,7 +573,7 @@ static void  __exit htcdrm_exit(void)
 	unregister_chrdev(htcdrm_major, DEVICE_NAME);
 	kfree(htc_device_id);
 	kfree(htc_keybox);
-#if defined(CONFIG_ARCH_MSM7X30) || defined(CONFIG_ARCH_MSM7X27A)
+#ifdef CONFIG_ARCH_MSM7X30
 	kfree(keybox_dev);
 #endif
 	PDEBUG("un-registered module ok\n");

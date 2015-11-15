@@ -174,7 +174,7 @@ static void __init qsd8x50_init_mmc(void)
 static void __init qsd8x50_map_io(void)
 {
 	msm_map_qsd8x50_io();
-	msm_clock_init(msm_clocks_8x50, msm_num_clocks_8x50);
+	msm_clock_init(&qds8x50_clock_init_data);
 }
 
 static void __init qsd8x50_init_irq(void)
