@@ -53,7 +53,7 @@
 #include "smd_private.h"
 
 #if defined(CONFIG_MACH_BRAVO)
-#include "board-htcleo.h"
+#include "board-bravo.h"
 #endif
 
 enum {
