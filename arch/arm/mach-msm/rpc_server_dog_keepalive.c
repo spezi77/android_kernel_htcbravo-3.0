@@ -18,10 +18,13 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <mach/msm_rpcrouter.h>
+#include <mach/msm_rpc_version.h>
+#include <asm/mach-types.h>
 
 /* dog_keepalive server definitions */
 
 #define DOG_KEEPALIVE_PROG 0x30000015
+#ifndef DOG_KEEPALIVE_VERS
 #if CONFIG_MSM_AMSS_VERSION==6210
 #define DOG_KEEPALIVE_VERS 0
 #define RPC_DOG_KEEPALIVE_BEACON 1
@@ -30,6 +33,7 @@
 #define RPC_DOG_KEEPALIVE_BEACON 2
 #else
 #error "Unsupported AMSS version"
+#endif
 #endif
 #define DOG_KEEPALIVE_VERS_COMP 0x00010001
 #define RPC_DOG_KEEPALIVE_NULL 0
